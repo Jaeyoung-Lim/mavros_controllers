@@ -1,0 +1,4 @@
+.idea/
+
+# Artifacts from clion
+*/cmake-build-debug/*
