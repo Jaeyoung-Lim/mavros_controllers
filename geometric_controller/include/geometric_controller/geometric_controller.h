@@ -1,7 +1,7 @@
 //  July/2018, ETHZ, Jaeyoung Lim, jalim@student.ethz.ch
 
-#ifndef TRAJECTORY_CONTROLLER_H
-#define TRAJECTORY_CONTROLLER_H
+#ifndef GEOMETRIC_CONTROLLER_H
+#define GEOMETRIC_CONTROLLER_H
 
 #include <ros/ros.h>
 #include <ros/subscribe_options.h>
@@ -35,7 +35,7 @@
 
 using namespace std;
 using namespace Eigen;
-class trajectoryCtrl
+class geometricCtrl
 {
   private:
     ros::NodeHandle nh_;
@@ -99,11 +99,11 @@ class trajectoryCtrl
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
 
   public:
-    trajectoryCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
+    geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
     void computeBodyRateCmd(bool ctrl_mode);
     Eigen::Vector4d quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p);
     Eigen::Vector4d attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
-    virtual ~ trajectoryCtrl();
+    virtual ~ geometricCtrl();
 };
 
 
