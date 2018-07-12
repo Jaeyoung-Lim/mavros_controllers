@@ -2,9 +2,10 @@
 
 Trajectory trackking controller using [mavros](https://github.com/mavlink/mavros) package in PX4 OFFBOARD mode. This is a implementation of a geometric controller and differentially flat system considering rotor drag
 
-======
 ## Overview
 Trajectory trackking controller using [mavros](https://github.com/mavlink/mavros) package in PX4 OFFBOARD mode. This is a implementation of a geometric controller and differentially flat system considering rotor drag
+
+[![Hovering done](https://img.youtube.com/vi/FRaPGjX9m-c/0.jpg)](https://youtu.be/FRaPGjX9m-c "Hovering done")
 
 
 ## Installation Instructions

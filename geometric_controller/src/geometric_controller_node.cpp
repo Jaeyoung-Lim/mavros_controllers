@@ -1,11 +1,11 @@
 //  July/2018, ETHZ, Jaeyoung Lim, jalim@student.ethz.ch
 
-#include "trajectory_controller/trajectory_controller.h"
+#include "geometric_controller/geometric_controller.h"
 
 using namespace Eigen;
 using namespace std;
 //Constructor
-trajectoryCtrl::trajectoryCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private):
+geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private):
   nh_(nh),
   nh_private_(nh_private),
   max_motor_speed_(150),
@@ -29,14 +29,14 @@ trajectoryCtrl::trajectoryCtrl(const ros::NodeHandle& nh, const ros::NodeHandle&
   max_fb_acc_ = 7.0;
   use_gzstates_ = true;
 
-  referenceSub_=nh_.subscribe("reference/setpoint",1, &trajectoryCtrl::targetCallback,this,ros::TransportHints().tcpNoDelay());
-  mavstateSub_ = nh_.subscribe("/mavros/state", 1, &trajectoryCtrl::mavstateCallback, this,ros::TransportHints().tcpNoDelay());
-  mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &trajectoryCtrl::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
-  gzmavposeSub_ = nh_.subscribe("/gazebo/model_states", 1, &trajectoryCtrl::gzmavposeCallback, this, ros::TransportHints().tcpNoDelay());
-  mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity", 1, &trajectoryCtrl::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
-  ctrltriggerServ_ = nh_.advertiseService("tigger_rlcontroller", &trajectoryCtrl::ctrltriggerCallback, this);
-  cmdloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryCtrl::cmdloopCallback, this); // Define timer for constant loop rate
-  statusloop_timer_ = nh_.createTimer(ros::Duration(1), &trajectoryCtrl::statusloopCallback, this); // Define timer for constant loop rate
+  referenceSub_=nh_.subscribe("reference/setpoint",1, &geometricCtrl::targetCallback,this,ros::TransportHints().tcpNoDelay());
+  mavstateSub_ = nh_.subscribe("/mavros/state", 1, &geometricCtrl::mavstateCallback, this,ros::TransportHints().tcpNoDelay());
+  mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &geometricCtrl::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
+  gzmavposeSub_ = nh_.subscribe("/gazebo/model_states", 1, &geometricCtrl::gzmavposeCallback, this, ros::TransportHints().tcpNoDelay());
+  mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity", 1, &geometricCtrl::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
+  ctrltriggerServ_ = nh_.advertiseService("tigger_rlcontroller", &geometricCtrl::ctrltriggerCallback, this);
+  cmdloop_timer_ = nh_.createTimer(ros::Duration(0.01), &geometricCtrl::cmdloopCallback, this); // Define timer for constant loop rate
+  statusloop_timer_ = nh_.createTimer(ros::Duration(1), &geometricCtrl::statusloopCallback, this); // Define timer for constant loop rate
 
   angularVelPub_ = nh_.advertise<mavros_msgs::AttitudeTarget>("command/bodyrate_command", 1);
   referencePosePub_ = nh_.advertise<geometry_msgs::PoseStamped>("reference/pose", 1);
@@ -48,11 +48,11 @@ trajectoryCtrl::trajectoryCtrl(const ros::NodeHandle& nh, const ros::NodeHandle&
   nh_.param<bool>("enable_sim", sim_enable_, true); //TODO: param path fix
   std::cout << sim_enable_ << std::endl;
 }
-trajectoryCtrl::~trajectoryCtrl() {
+geometricCtrl::~geometricCtrl() {
   //Destructor
 }
 
-void trajectoryCtrl::targetCallback(const geometry_msgs::TwistStamped& msg) {
+void geometricCtrl::targetCallback(const geometry_msgs::TwistStamped& msg) {
 
   reference_request_last_ = reference_request_now_;
   targetPos_prev_ = targetPos_;
@@ -65,7 +65,7 @@ void trajectoryCtrl::targetCallback(const geometry_msgs::TwistStamped& msg) {
   targetVel_ << msg.twist.linear.x, msg.twist.linear.y, msg.twist.linear.z;
 }
 
-void trajectoryCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
+void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
   if(!use_gzstates_){
     mavPos_(0) = msg.pose.position.x;
     mavPos_(1) = msg.pose.position.y;
@@ -77,7 +77,7 @@ void trajectoryCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
   }
 }
 
-void trajectoryCtrl::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
+void geometricCtrl::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
   if(!use_gzstates_) {
     mavVel_(0) = msg.twist.linear.x;
     mavVel_(1) = msg.twist.linear.y;
@@ -88,7 +88,7 @@ void trajectoryCtrl::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
   }
 }
 
-void trajectoryCtrl::gzmavposeCallback(const gazebo_msgs::ModelStates& msg){
+void geometricCtrl::gzmavposeCallback(const gazebo_msgs::ModelStates& msg){
   if(use_gzstates_){
     string name_ = "iris"; //TODO: Parameterize MAV name
     for(int i = 0; i < msg.pose.size(); i++){
@@ -111,7 +111,7 @@ void trajectoryCtrl::gzmavposeCallback(const gazebo_msgs::ModelStates& msg){
   }
 }
 
-void trajectoryCtrl::cmdloopCallback(const ros::TimerEvent& event){
+void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
   if(sim_enable_){
     // Enable OFFBoard mode and arm automatically
     // This is only run if the vehicle is simulated
@@ -145,15 +145,15 @@ void trajectoryCtrl::cmdloopCallback(const ros::TimerEvent& event){
   ros::spinOnce();
 }
 
-void trajectoryCtrl::mavstateCallback(const mavros_msgs::State::ConstPtr& msg){
+void geometricCtrl::mavstateCallback(const mavros_msgs::State::ConstPtr& msg){
     current_state_ = *msg;
 }
 
-void trajectoryCtrl::statusloopCallback(const ros::TimerEvent& event){
+void geometricCtrl::statusloopCallback(const ros::TimerEvent& event){
 
 }
 
-void trajectoryCtrl::pubReferencePose(){
+void geometricCtrl::pubReferencePose(){
   referencePoseMsg_.header.stamp = ros::Time::now();
   referencePoseMsg_.header.frame_id = "map";
   referencePoseMsg_.pose.position.x = targetPos_(0);
@@ -166,7 +166,7 @@ void trajectoryCtrl::pubReferencePose(){
   referencePosePub_.publish(referencePoseMsg_);
 }
 
-void trajectoryCtrl::pubRateCommands(){
+void geometricCtrl::pubRateCommands(){
   angularVelMsg_.header.stamp = ros::Time::now();
   angularVelMsg_.header.frame_id= "map";
   angularVelMsg_.body_rate.x = cmdBodyRate_(0);
@@ -177,7 +177,7 @@ void trajectoryCtrl::pubRateCommands(){
   angularVelPub_.publish(angularVelMsg_);
 }
 
-void trajectoryCtrl::computeBodyRateCmd(bool ctrl_mode){
+void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   Eigen::Vector3d errorPos_, errorVel_;
   Eigen::Matrix3d R_ref;
   errorPos_ = mavPos_ - targetPos_;
@@ -199,7 +199,7 @@ void trajectoryCtrl::computeBodyRateCmd(bool ctrl_mode){
   cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 }
 
-Eigen::Vector4d trajectoryCtrl::quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p) {
+Eigen::Vector4d geometricCtrl::quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p) {
    Eigen::Vector4d quat;
   quat << p(0) * q(0) - p(1) * q(1) - p(2) * q(2) - p(3) * q(3),
           p(0) * q(1) + p(1) * q(0) - p(2) * q(3) + p(3) * q(2),
@@ -208,7 +208,7 @@ Eigen::Vector4d trajectoryCtrl::quatMultiplication(Eigen::Vector4d &q, Eigen::Ve
   return quat;
 }
 
-Eigen::Matrix3d trajectoryCtrl::quat2RotMatrix(Eigen::Vector4d q){
+Eigen::Matrix3d geometricCtrl::quat2RotMatrix(Eigen::Vector4d q){
   Eigen::Matrix3d rotmat;
   rotmat << q(0) * q(0) + q(1) * q(1) - q(2) * q(2) - q(3) * q(3),
     2 * q(1) * q(2) - 2 * q(0) * q(3),
@@ -224,7 +224,7 @@ Eigen::Matrix3d trajectoryCtrl::quat2RotMatrix(Eigen::Vector4d q){
   return rotmat;
 }
 
-Eigen::Vector4d trajectoryCtrl::rot2Quaternion(Eigen::Matrix3d R){
+Eigen::Vector4d geometricCtrl::rot2Quaternion(Eigen::Matrix3d R){
   Eigen::Vector4d quat;
   double tr = R.trace();
   if (tr > 0.0) {
@@ -255,7 +255,7 @@ Eigen::Vector4d trajectoryCtrl::rot2Quaternion(Eigen::Matrix3d R){
   return quat;
 }
 
-Eigen::Vector4d trajectoryCtrl::acc2quaternion(Eigen::Vector3d vector_acc, double yaw) {
+Eigen::Vector4d geometricCtrl::acc2quaternion(Eigen::Vector3d vector_acc, double yaw) {
   Eigen::Vector4d quat;
   Eigen::Vector3d zb_des, yb_des, xb_des, yc;
   Eigen::Matrix3d rotmat;
@@ -270,7 +270,7 @@ Eigen::Vector4d trajectoryCtrl::acc2quaternion(Eigen::Vector3d vector_acc, doubl
   return quat;
 }
 
-Eigen::Vector4d trajectoryCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att){
+Eigen::Vector4d geometricCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att){
   Eigen::Vector4d ratecmd;
   Eigen::Vector4d qe, q_inv, inverse;
   Eigen::Matrix3d rotmat;
@@ -287,7 +287,7 @@ Eigen::Vector4d trajectoryCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::V
   return ratecmd;
 }
 
-bool trajectoryCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
+bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
                                           std_srvs::SetBool::Response &res){
   unsigned char mode = req.data;
 

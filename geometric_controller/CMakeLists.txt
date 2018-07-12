@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(trajectory_controller)
+project(geometric_controller)
 
 include_directories(${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 
@@ -11,8 +11,8 @@ add_definitions(-std=c++11)
 ############
 # BINARIES #
 ############
-cs_add_executable(trajectory_controller
-        src/trajectory_controller.cpp src/trajectory_controller_node.cpp
+cs_add_executable(geometric_controller
+        src/geometric_controller.cpp src/geometric_controller_node.cpp
         )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 ##########
