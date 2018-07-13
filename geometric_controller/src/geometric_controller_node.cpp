@@ -210,7 +210,7 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
   if(ctrl_mode_ == MODE_ROTORTHRUST){
     //TODO: Compute Thrust commands
   } else if(ctrl_mode_ == MODE_BODYRATE){
-      computeBodyRateCmd(false);
+      computeBodyRateCmd(true);
       pubReferencePose();
       pubRateCommands();
   } else if(ctrl_mode_ == MODE_BODYTORQUE){
@@ -372,6 +372,13 @@ Eigen::Vector4d geometricCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Ve
   ratecmd(3) = std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb))); //Calculate thrust
   return ratecmd;
 }
+
+Eigen::Vector4d geometricCtrl::jerkcontroller(Eigen::Vector3d &ref_jerk, Eigen::Vector3d &ref_acc, Eigen::Vector3d &ref_vel, Eigen::Vector4d &curr_att){
+  Eigen::Vector4d ratecmd;
+  //TODO: Implementation of jerk feedforward control
+  return ratecmd;
+}
+
 
 bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
                                           std_srvs::SetBool::Response &res){
