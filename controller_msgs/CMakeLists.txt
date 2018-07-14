@@ -8,7 +8,7 @@ include_directories(include)
 add_message_files(
   DIRECTORY msg
   FILES
-  JerkStateTarget.msg
+  FlatTarget.msg
 )
 
 generate_messages(DEPENDENCIES geometry_msgs sensor_msgs std_msgs)
