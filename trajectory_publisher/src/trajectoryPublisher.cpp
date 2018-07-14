@@ -23,7 +23,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   target_trajectoryID_ = 0;
   controlUpdate_dt_ = 0.01;
   target_initpos << 0.0, 0.0, 1.0; //TODO: Automate this
-  controlUpdate_dt_ = 0.01;
+  controlUpdate_dt_ = 0.01; //TODO: Pareameterize
 }
 
 void trajectoryPublisher::setTrajectory(int ID) {
