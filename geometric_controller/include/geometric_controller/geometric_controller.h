@@ -26,6 +26,7 @@
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/AttitudeTarget.h>
+#include <controller_msgs/FlatTarget.h>
 #include <std_srvs/SetBool.h>
 #include <gazebo_msgs/ModelStates.h>
 
@@ -42,6 +43,8 @@ class geometricCtrl
     ros::NodeHandle nh_private_;
     ros::Subscriber odomSub_;
     ros::Subscriber referenceSub_;
+    ros::Subscriber flatreferenceSub_;
+
     ros::Subscriber keybrdSub_;
     ros::Subscriber mavstateSub_;
     ros::Subscriber mavposeSub_, gzmavposeSub_;
@@ -72,7 +75,7 @@ class geometricCtrl
     mavros_msgs::AttitudeTarget angularVelMsg_;
     geometry_msgs::PoseStamped referencePoseMsg_;
 
-    Eigen::Vector3d goalPos_, targetPos_, targetVel_, targetPos_prev_, targetVel_prev_;
+    Eigen::Vector3d goalPos_, targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
     Eigen::Vector3d mavPos_, mavVel_, mavRate_;
     double mavYaw_;
     Eigen::Vector3d a_des, a_fb, a_ref, a_rd, g_;
@@ -85,6 +88,7 @@ class geometricCtrl
     void pubReferencePose();
     void odomCallback(const nav_msgs::OdometryConstPtr& odomMsg);
     void targetCallback(const geometry_msgs::TwistStamped& msg);
+    void flattargetCallback(const controller_msgs::FlatTarget& msg);
     void keyboardCallback(const geometry_msgs::Twist& msg);
     void cmdloopCallback(const ros::TimerEvent& event);
     void mavstateCallback(const mavros_msgs::State::ConstPtr& msg);
