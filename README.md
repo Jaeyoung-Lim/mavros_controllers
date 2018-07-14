@@ -10,9 +10,9 @@ The repository contains controllers for controlling MAVs using the mavros packag
 - trajectory_publisher: Node publishing setpoints as states from motion primitives / trajectories for the controller to follow.
 
 ## Topics
+### trajectory_controller
 The geometric controller publishes and subscribes the following topics.
 
-### trajectory_controller
 - Published Topics
 	- "command/bodyrate_command" ( [mavros_msgs/AttitudeTarget](http://docs.ros.org/api/mavros_msgs/html/msg/AttitudeTarget.html) )
 	- "reference/pose" ( [geometry_msgs/PoseStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/PoseStamped.html) )
@@ -26,9 +26,8 @@ The geometric controller publishes and subscribes the following topics.
 
 ### trajectory_publisher
 - Published Topics
-	
-- Subscribed Topics
-	
+	- reference/trajectory ( [nav_msgs/Path](http://docs.ros.org/kinetic/api/nav_msgs/html/msg/Path.html) )
+	- reference/setpoint ( [geometry_msgs/TwistStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/Twist.html) )
 
 ## References
 [1] Lee, Taeyoung, Melvin Leoky, and N. Harris McClamroch. "Geometric tracking control of a quadrotor UAV on SE (3)." Decision and Control (CDC), 2010 49th IEEE Conference on. IEEE, 2010.
