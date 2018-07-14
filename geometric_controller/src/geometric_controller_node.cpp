@@ -78,10 +78,32 @@ void geometricCtrl::flattargetCallback(const controller_msgs::FlatTarget& msg) {
 
   targetPos_ << msg.position.x, msg.position.y, msg.position.z;
   targetVel_ << msg.velocity.x, msg.velocity.y, msg.velocity.z;
-  targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
-  targetJerk_ << msg.jerk.x, msg.jerk.y, msg.jerk.z;
-  targetSnap_ << msg.snap.x, msg.snap.y, msg.snap.z;
 
+  if(msg.type_mask == 1) {
+
+    targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
+    targetJerk_ << msg.jerk.x, msg.jerk.y, msg.jerk.z;
+    targetSnap_ << 0.0, 0.0, 0.0;
+
+  } else if (msg.type_mask == 2) {
+
+    targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
+    targetJerk_ << 0.0, 0.0, 0.0;
+    targetSnap_ << 0.0, 0.0, 0.0;
+
+  } else if (msg.type_mask == 4) {
+
+    targetAcc_ << 0.0, 0.0, 0.0;
+    targetJerk_ << 0.0, 0.0, 0.0;
+    targetSnap_ << 0.0, 0.0, 0.0;
+
+  } else {
+
+    targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
+    targetJerk_ << msg.jerk.x, msg.jerk.y, msg.jerk.z;
+    targetSnap_ << msg.snap.x, msg.snap.y, msg.snap.z;
+
+  }
 }
 
 void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
