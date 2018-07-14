@@ -2,12 +2,15 @@
 
 Controllers for controlling MAVs using the [mavros](https://github.com/mavlink/mavros) package in OFFBOARD mode.
 
-======
+
 ## Overview
 The repository contains controllers for controlling MAVs using the mavros package. The following packages are included in the repo
-- trajectory_controller: Trajectory controller 
+- trajectory_controller: Trajectory tracking controller based on geometric control
+- controller_msgs: custom message definitions
+- trajectory_publisher: Node publishing setpoints as states from motion primitives / trajectories for the controller to follow.
 
 ## Topics
+### trajectory_controller
 The geometric controller publishes and subscribes the following topics.
 
 - Published Topics
@@ -20,6 +23,11 @@ The geometric controller publishes and subscribes the following topics.
 	- /mavros/local_position/pose ( [geometry_msgs/PoseStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/PoseStamped.html) )
 	- /gazebo/model_states( [gazebo_msgs/ModelStates](http://docs.ros.org/kinetic/api/gazebo_msgs/html/msg/ModelState.html) )
 	- /mavros/local_position/velocity( [geometry_msgs/TwistStamped](http://docs.ros.org/api/geometry_msgs/html/msg/TwistStamped.html) )
+
+### trajectory_publisher
+- Published Topics
+	- reference/trajectory ( [nav_msgs/Path](http://docs.ros.org/kinetic/api/nav_msgs/html/msg/Path.html) )
+	- reference/setpoint ( [geometry_msgs/TwistStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/Twist.html) )
 
 ## References
 [1] Lee, Taeyoung, Melvin Leoky, and N. Harris McClamroch. "Geometric tracking control of a quadrotor UAV on SE (3)." Decision and Control (CDC), 2010 49th IEEE Conference on. IEEE, 2010.
