@@ -30,6 +30,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   use_gzstates_ = true;
 
   referenceSub_=nh_.subscribe("reference/setpoint",1, &geometricCtrl::targetCallback,this,ros::TransportHints().tcpNoDelay());
+  flatreferenceSub_ = nh_.subscribe("reference/flatsetpoint", 1, &geometricCtrl::flattargetCallback, this, ros::TransportHints().tcpNoDelay());
   mavstateSub_ = nh_.subscribe("/mavros/state", 1, &geometricCtrl::mavstateCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &geometricCtrl::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
   gzmavposeSub_ = nh_.subscribe("/gazebo/model_states", 1, &geometricCtrl::gzmavposeCallback, this, ros::TransportHints().tcpNoDelay());
@@ -63,6 +64,24 @@ void geometricCtrl::targetCallback(const geometry_msgs::TwistStamped& msg) {
 
   targetPos_ << msg.twist.angular.x, msg.twist.angular.y, msg.twist.angular.z;
   targetVel_ << msg.twist.linear.x, msg.twist.linear.y, msg.twist.linear.z;
+}
+
+void geometricCtrl::flattargetCallback(const controller_msgs::FlatTarget& msg) {
+
+  reference_request_last_ = reference_request_now_;
+
+  targetPos_prev_ = targetPos_;
+  targetVel_prev_ = targetVel_;
+
+  reference_request_now_ = ros::Time::now();
+  reference_request_dt_ = (reference_request_now_ - reference_request_last_).toSec();
+
+  targetPos_ << msg.position.x, msg.position.y, msg.position.z;
+  targetVel_ << msg.velocity.x, msg.velocity.y, msg.velocity.z;
+  targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
+  targetJerk_ << msg.jerk.x, msg.jerk.y, msg.jerk.z;
+  targetSnap_ << msg.snap.x, msg.snap.y, msg.snap.z;
+
 }
 
 void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
