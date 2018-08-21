@@ -19,6 +19,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <std_srvs/SetBool.h>
 #include <nav_msgs/Path.h>
+#include <planning_msgs/PolynomialTrajectory4D.h>
 
 using namespace std;
 using namespace Eigen;

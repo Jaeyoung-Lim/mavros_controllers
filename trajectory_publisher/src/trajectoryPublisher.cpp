@@ -168,3 +168,17 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
   res.success = true;
   res.message = "trajectory triggered";
 }
+
+void trajectoryPublisher::trajectoryCallback(const planning_msgs::PolynomialTrajectory4D& segments_message) {
+
+  if (segments_message.segments.empty()) {
+    ROS_WARN("Trajectory sampler: received empty waypoint message");
+    return;
+  } else {
+    ROS_INFO("Trajectory sampler: received %lu waypoints",
+             segments_message.segments.size());
+  }
+
+  current_sample_time_ = 0.0;
+  start_time_ = ros::Time::now();
+}
