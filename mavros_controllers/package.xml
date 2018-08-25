@@ -1,0 +1,25 @@
+<package>
+  <name>mavros_controllers</name>
+  <version>0.0.1</version>
+  <description>Contains useful controllers for mavros</description>
+
+  <maintainer email="jalim@ethz.ch">Jaeyoung Lim</maintainer>
+
+  <author>Jaeyoung Lim</author>
+
+  <license>BSD-3</license>
+
+  <url type="website">https://github.com/Jaeyoung-Lim/mavros_controllers</url>
+  <url type="bugtracker">https://github.com/Jaeyoung-Lim/mavros_controllers/issues</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>controller_msgs</run_depend>
+  <run_depend>geometric_controller</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>
