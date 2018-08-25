@@ -45,8 +45,9 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 
+  nh_.param<string>("/geometric_controller/mavname", mav_name_, "iris");
   nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
-  nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true); //TODO: param path fix
+  nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true);
 }
 geometricCtrl::~geometricCtrl() {
   //Destructor
@@ -129,10 +130,10 @@ void geometricCtrl::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
 }
 
 void geometricCtrl::gzmavposeCallback(const gazebo_msgs::ModelStates& msg){
+  //TODO: gazebo_msgs should not be compiled on the vehicle
   if(use_gzstates_){
-    string name_ = "iris"; //TODO: Parameterize MAV name
     for(int i = 0; i < msg.pose.size(); i++){
-      if(msg.name[i] == name_){
+      if(msg.name[i] == mav_name_){
         mavPos_(0) = msg.pose[i].position.x;
         mavPos_(1) = msg.pose[i].position.y;
         mavPos_(2) = msg.pose[i].position.z;
