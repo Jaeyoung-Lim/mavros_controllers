@@ -45,9 +45,8 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 
-  nh_.param<int>("ctrl_mode", ctrl_mode_, MODE_BODYRATE);
-  nh_.param<bool>("enable_sim", sim_enable_, true); //TODO: param path fix
-  std::cout << sim_enable_ << std::endl;
+  nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
+  nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true); //TODO: param path fix
 }
 geometricCtrl::~geometricCtrl() {
   //Destructor
@@ -158,6 +157,7 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
     // This is only run if the vehicle is simulated
     arm_cmd_.request.value = true;
     offb_set_mode_.request.custom_mode = "OFFBOARD";
+    std::cout << sim_enable_ << std::endl;
     if( current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
       if( set_mode_client_.call(offb_set_mode_) && offb_set_mode_.response.mode_sent){
         ROS_INFO("Offboard enabled");
