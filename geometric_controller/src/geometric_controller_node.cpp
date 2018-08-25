@@ -45,9 +45,8 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 
-  nh_.param<int>("ctrl_mode", ctrl_mode_, MODE_BODYRATE);
-  nh_.param<bool>("enable_sim", sim_enable_, true); //TODO: param path fix
-  std::cout << sim_enable_ << std::endl;
+  nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
+  nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true); //TODO: param path fix
 }
 geometricCtrl::~geometricCtrl() {
   //Destructor

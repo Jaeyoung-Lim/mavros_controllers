@@ -6,17 +6,15 @@
   <arg name="tgt_component" default="1" />
   <arg name="command_input" default="2" />
   <arg name="gazebo_simulation" default="true" />
-  <arg name="visualization" default="true"/>
+  <arg name="visualization" default="false"/>
 
 
-  <group ns="$(arg mav_name)">
-  	<node pkg="geometric_controller" type="geometric_controller" name="geometric_controller" output="screen">
+  <node pkg="geometric_controller" type="geometric_controller" name="geometric_controller" output="screen">
   		<param name="mav_name" type="string" value="$(arg mav_name)" />
           <remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
           <param name="ctrl_mode" value="$(arg command_input)" />
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
-  	</node>
-  </group>
+  </node>
 
   <node name="mavros" pkg="mavros" type="mavros_node" output="screen">
       <param name="fcu_url" value="$(arg fcu_url)" />
