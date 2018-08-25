@@ -17,13 +17,17 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
 
   trajtriggerServ_ = nh_.advertiseService("start", &trajectoryPublisher::triggerCallback, this);
 
+  nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_x_, 0.0);
+  nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_y_, 0.0);
+  nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_z_, 1.0);
+  nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
+  nh_.param<int>("/trajectory_publisher/trajectoryID", target_trajectoryID_, 0);
+
+
   traj_axis_ << 0.0, 0.0, 1.0;
   p_targ << 0.0, 0.0, 0.0;
   v_targ << 0.0, 0.0, 0.0;
-  target_trajectoryID_ = 0;
-  controlUpdate_dt_ = 0.01;
-  target_initpos << 0.0, 0.0, 1.0; //TODO: Automate this
-  controlUpdate_dt_ = 0.01; //TODO: Pareameterize
+  target_initpos << init_pos_x_, init_pos_y_, init_pos_z_;
 }
 
 void trajectoryPublisher::setTrajectory(int ID) {
@@ -31,19 +35,19 @@ void trajectoryPublisher::setTrajectory(int ID) {
   Eigen::Vector3d axis, initpos;
 
   switch (ID) {
-    case 0: //stationary trajectory
+    case TRAJ_STATIONARY: //stationary trajectory
       omega = 0.0;
       radius = 0.0;
       axis << 0.0, 0.0, 1.0;
       initpos << 0.0, 0.0, 1.0;
       break;
-    case 1: //circular trajectory
+    case TRAJ_CIRCLE: //circular trajectory
       omega = 1.0;
       radius = 2.0;
       axis << 0.0, 0.0, 1.0;
       initpos << 0.0, radius, 0.0;
       break;
-    case 2: //Lemniscate of Genoro
+    case TRAJ_LAMNISCATE: //Lemniscate of Genoro
       omega = 1.0;
       radius = 2.0;
       axis << 0.0, 0.0, 1.0;
@@ -68,12 +72,19 @@ void trajectoryPublisher::setTrajectoryTheta(double in) {
 
 void trajectoryPublisher::moveReference() {
   curr_time_ = ros::Time::now();
+  trigger_time_ = (curr_time_ - start_time_).toSec();
 
   if(mode_ == MODE_PRIMITIVES){
     //TODO: Play reference trajectory based on time
+//    p_targ << a0x + a1x*trigger_time_ + a2x*trigger_time_^2 + a3x*trigger)time_^3,
+//              a0y + a1y*trigger_time_ + a2y*trigger_time_^2 + a3y*trigger)time_^3,
+//              a0z + a1z*trigger_time_ + a2z*trigger_time_^2 + a3z*trigger)time_^3;
+//    v_targ << a1 + 2*a2*trigger_time_ + 3*a3*trigger)time_^2,
+//              a1 + 2*a2*trigger_time_ + 3*a3*trigger)time_^2,
+//              a1 + 2*a2*trigger_time_ + 3*a3*trigger)time_^2;
   }
-  else {
-    theta_ = traj_omega_*(curr_time_ - start_time_).toSec();
+  else if(mode_ == MODE_REFERENCE){
+    theta_ = traj_omega_* trigger_time_;
 
     if (target_trajectoryID_ == 0) { //Stationary
       p_targ = target_initpos;
@@ -167,12 +178,13 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
                                           std_srvs::SetBool::Response &res){
   unsigned char mode = req.data;
   start_time_ = ros::Time::now();
+  //TODO: Trajectory triggering should not be done by changing modes
   switch(mode){
     case 1 :
-      target_trajectoryID_ = MODE_CIRCLE;
+      target_trajectoryID_ = TRAJ_CIRCLE;
       break;
     case 2 :
-      target_trajectoryID_ = MODE_LAMNISCATE;
+      target_trajectoryID_ = TRAJ_LAMNISCATE;
       break;
   }
   res.success = true;
@@ -189,4 +201,5 @@ void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::Polynomial
   }
 
   start_time_ = ros::Time::now();
+  //TODO: Read polynomial coefficients
 }

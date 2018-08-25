@@ -3,11 +3,12 @@
 #ifndef TRAJECTORYPUBLISHER_H
 #define TRAJECTORYPUBLISHER_H
 
-#define MODE_CIRCLE 1
-#define MODE_LAMNISCATE 2
-#define MODE_STATIONARY 3
-#define MODE_PRIMITIVES 100
-#define MODE_REFERENCE 101
+#define TRAJ_STATIONARY 0
+#define TRAJ_CIRCLE 1
+#define TRAJ_LAMNISCATE 2
+
+#define MODE_PRIMITIVES 1
+#define MODE_REFERENCE 2
 
 #include <stdio.h>
 #include <cstdlib>
@@ -48,6 +49,8 @@ private:
   double traj_radius_, traj_omega_;
   double theta_ = 0.0;
   double controlUpdate_dt_;
+  double trigger_time_;
+  double init_pos_x_, init_pos_y_, init_pos_z_;
   int target_trajectoryID_;
 
 
