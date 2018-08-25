@@ -67,21 +67,28 @@ void trajectoryPublisher::setTrajectoryTheta(double in) {
 }
 
 void trajectoryPublisher::moveReference() {
-  if (target_trajectoryID_ == 0) { //Stationary
-    p_targ = target_initpos;
-    v_targ.setZero();
-  } else if (target_trajectoryID_ == 1) { //Circular trajectory
-    p_targ = std::cos(theta_) * target_initpos
-             + std::sin(theta_) * traj_axis_.cross(target_initpos)
-             + (1 - std::cos(theta_)) * traj_axis_.dot(target_initpos) * traj_axis_;
-    v_targ = traj_omega_ * traj_axis_.cross(p_targ);
-    theta_ += traj_omega_ * this->controlUpdate_dt_;
-  } else if (target_trajectoryID_ == 2) { //Lemniscate of Genero
-    p_targ = std::cos(theta_) * target_initpos
-             + std::sin(theta_) * std::cos(theta_) * traj_axis_.cross(target_initpos)
-             + (1 - std::cos(theta_)) * traj_axis_.dot(target_initpos) * traj_axis_;
-    v_targ = traj_omega_ * traj_axis_.cross(p_targ); //TODO: This is wrong
-    theta_ += traj_omega_ * this->controlUpdate_dt_;
+  curr_time_ = ros::Time::now();
+
+  if(mode_ == MODE_PRIMITIVES){
+    //TODO: Play reference trajectory based on time
+  }
+  else {
+    theta_ = traj_omega_*(curr_time_ - start_time_).toSec();
+
+    if (target_trajectoryID_ == 0) { //Stationary
+      p_targ = target_initpos;
+      v_targ.setZero();
+    } else if (target_trajectoryID_ == 1) { //Circular trajectory
+      p_targ = std::cos(theta_) * target_initpos
+               + std::sin(theta_) * traj_axis_.cross(target_initpos)
+               + (1 - std::cos(theta_)) * traj_axis_.dot(target_initpos) * traj_axis_;
+      v_targ = traj_omega_ * traj_axis_.cross(p_targ);
+    } else if (target_trajectoryID_ == 2) { //Lemniscate of Genero
+      p_targ = std::cos(theta_) * target_initpos
+               + std::sin(theta_) * std::cos(theta_) * traj_axis_.cross(target_initpos)
+               + (1 - std::cos(theta_)) * traj_axis_.dot(target_initpos) * traj_axis_;
+      v_targ = traj_omega_ * traj_axis_.cross(p_targ); //TODO: This is wrong
+    }
   }
 }
 
@@ -146,10 +153,12 @@ void trajectoryPublisher::pubrefState(){
 }
 
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
+  //Slow Loop publishing trajectory information
   trajectoryPub_.publish(refTrajectory_);
 }
 
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
+  //Fast Loop publishing reference states
   moveReference();
   pubrefState();
 }
@@ -157,6 +166,7 @@ void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
 bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
                                           std_srvs::SetBool::Response &res){
   unsigned char mode = req.data;
+  start_time_ = ros::Time::now();
   switch(mode){
     case 1 :
       target_trajectoryID_ = MODE_CIRCLE;
@@ -167,4 +177,16 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
   }
   res.success = true;
   res.message = "trajectory triggered";
+}
+
+void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message) {
+
+  if (segments_message.segments.empty()) {
+    ROS_WARN("Trajectory sampler: received empty waypoint message");
+    return;
+  } else {
+    ROS_INFO("Trajectory sampler: received %lu waypoints", segments_message.segments.size());
+  }
+
+  start_time_ = ros::Time::now();
 }
