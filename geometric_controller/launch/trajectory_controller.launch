@@ -5,8 +5,8 @@
   <arg name="tgt_system" default="1" />
   <arg name="tgt_component" default="1" />
   <arg name="command_input" default="2" />
-  <arg name="gazebo_simulation" default="false" />
-  <arg name="visualization" default="true"/>
+  <arg name="gazebo_simulation" default="true" />
+  <arg name="visualization" default="false"/>
 
 
   <node pkg="geometric_controller" type="geometric_controller" name="geometric_controller" output="screen">

@@ -157,7 +157,6 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
     // This is only run if the vehicle is simulated
     arm_cmd_.request.value = true;
     offb_set_mode_.request.custom_mode = "OFFBOARD";
-    std::cout << sim_enable_ << std::endl;
     if( current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
       if( set_mode_client_.call(offb_set_mode_) && offb_set_mode_.response.mode_sent){
         ROS_INFO("Offboard enabled");
