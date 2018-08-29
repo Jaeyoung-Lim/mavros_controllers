@@ -24,6 +24,8 @@
 #include <nav_msgs/Path.h>
 #include <mav_planning_msgs/PolynomialTrajectory4D.h>
 
+#include "trajectory_publisher/trajectory.h"
+
 using namespace std;
 using namespace Eigen;
 class trajectoryPublisher
@@ -52,6 +54,8 @@ private:
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
   int target_trajectoryID_;
+
+  trajectory motionPrimitives_;
 
 
 public:
