@@ -12,7 +12,7 @@ add_definitions(-std=c++11)
 # BINARIES #
 ############
 cs_add_executable(trajectory_publisher
-        src/trajectoryPublisher.cpp src/trajectoryPublisher_node.cpp
+        src/trajectoryPublisher.cpp src/trajectoryPublisher_node.cpp src/trajectory.cpp
         )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 ##########

@@ -8,7 +8,8 @@ using namespace std;
 using namespace Eigen;
 trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private) :
   nh_(nh),
-  nh_private_(nh_private){
+  nh_private_(nh_private),
+  motionPrimitives_(0.1) {
 
   trajectoryPub_ = nh_.advertise<nav_msgs::Path>("reference/trajectory", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
@@ -22,7 +23,6 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_z_, 1.0);
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
   nh_.param<int>("/trajectory_publisher/trajectoryID", target_trajectoryID_, 0);
-
 
   traj_axis_ << 0.0, 0.0, 1.0;
   p_targ << 0.0, 0.0, 0.0;
@@ -191,15 +191,12 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
   res.message = "trajectory triggered";
 }
 
-void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message) {
-
-  if (segments_message.segments.empty()) {
-    ROS_WARN("Trajectory sampler: received empty waypoint message");
-    return;
-  } else {
-    ROS_INFO("Trajectory sampler: received %lu waypoints", segments_message.segments.size());
-  }
+void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_msg) {
 
   start_time_ = ros::Time::now();
-  //TODO: Read polynomial coefficients
+  //TODO: implement a trajectory replay functionality
+//  segments_message.segments;
+//
+//  motionPrimitives_.setPolynomial();
+
 }
