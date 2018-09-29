@@ -64,6 +64,10 @@ void geometricCtrl::targetCallback(const geometry_msgs::TwistStamped& msg) {
 
   targetPos_ << msg.twist.angular.x, msg.twist.angular.y, msg.twist.angular.z;
   targetVel_ << msg.twist.linear.x, msg.twist.linear.y, msg.twist.linear.z;
+
+  if(reference_request_dt_ > 0) targetAcc_ = (targetVel_ - targetVel_prev_ ) / reference_request_dt_;
+  else targetAcc_ = Eigen::Vector3d::Zero();
+
 }
 
 void geometricCtrl::flattargetCallback(const controller_msgs::FlatTarget& msg) {
@@ -221,15 +225,13 @@ void geometricCtrl::pubRateCommands(){
 void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   Eigen::Vector3d errorPos_, errorVel_;
   Eigen::Matrix3d R_ref;
+
   errorPos_ = mavPos_ - targetPos_;
   errorVel_ = mavVel_ - targetVel_;
-
-//  if(errorPos_.norm() > 0.5) errorPos_ = (1/errorPos_.norm())*errorPos_; //Clip position error
+  a_ref = targetAcc_;
 
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
-  if(reference_request_dt_ > 0) a_ref = (targetVel_ - targetVel_prev_ ) / reference_request_dt_;
-  else a_ref = Eigen::Vector3d::Zero();
   q_ref = acc2quaternion(a_ref - g_, mavYaw_);
   R_ref = quat2RotMatrix(q_ref);
   a_fb = Kpos_.asDiagonal() * errorPos_ + Kvel_.asDiagonal() * errorVel_; //feedforward term for trajectory error
@@ -237,6 +239,7 @@ void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
   a_des = a_fb + a_ref - a_rd - g_;
   q_des = acc2quaternion(a_des, mavYaw_);
+
   cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 }
 
