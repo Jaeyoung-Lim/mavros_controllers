@@ -58,6 +58,7 @@ class geometricCtrl
     ros::Time last_request_, reference_request_now_, reference_request_last_;
 
     int num_rotors_;
+    string mav_name_;
     int max_motor_speed_;
     bool fail_detec_, ctrl_enable_;
     int ctrl_mode_;
