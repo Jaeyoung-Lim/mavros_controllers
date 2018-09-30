@@ -19,6 +19,8 @@ class trajectory {
     trajectory(double duration);
     void setCoefficients(Eigen::VectorXd &x_coefficients, Eigen::VectorXd &y_coefficients, Eigen::VectorXd &z_coefficients);
     Eigen::VectorXd getCoefficients(int dim);
+    Eigen::Vector3d getPosition(double time);
+    Eigen::Vector3d getVelocity(double time);
 };
 
 

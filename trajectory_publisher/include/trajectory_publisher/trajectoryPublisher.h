@@ -18,6 +18,7 @@
 
 #include <ros/ros.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int32.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_srvs/SetBool.h>
@@ -35,6 +36,7 @@ private:
   ros::NodeHandle nh_private_;
   ros::Publisher trajectoryPub_;
   ros::Publisher referencePub_;
+  ros::Subscriber motionselectorSub_;
   ros::ServiceServer trajtriggerServ_;
   ros::Timer trajloop_timer_;
   ros::Timer refloop_timer_;
@@ -54,6 +56,7 @@ private:
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
   int target_trajectoryID_;
+  int motion_selector_;
 
   trajectory motionPrimitives_;
 

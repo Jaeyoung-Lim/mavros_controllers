@@ -19,8 +19,8 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   trajtriggerServ_ = nh_.advertiseService("start", &trajectoryPublisher::triggerCallback, this);
 
   nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_x_, 0.0);
-  nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_y_, 0.0);
-  nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_z_, 1.0);
+  nh_.param<double>("/trajectory_publisher/initpos_y", init_pos_y_, 0.0);
+  nh_.param<double>("/trajectory_publisher/initpos_z", init_pos_z_, 1.0);
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
   nh_.param<int>("/trajectory_publisher/trajectoryID", target_trajectoryID_, 0);
 
@@ -75,13 +75,10 @@ void trajectoryPublisher::moveReference() {
   trigger_time_ = (curr_time_ - start_time_).toSec();
 
   if(mode_ == MODE_PRIMITIVES){
-    //TODO: Play reference trajectory based on time
-//    p_targ << a0x + a1x*trigger_time_ + a2x*trigger_time_^2 + a3x*trigger)time_^3,
-//              a0y + a1y*trigger_time_ + a2y*trigger_time_^2 + a3y*trigger)time_^3,
-//              a0z + a1z*trigger_time_ + a2z*trigger_time_^2 + a3z*trigger)time_^3;
-//    v_targ << a1 + 2*a2*trigger_time_ + 3*a3*trigger)time_^2,
-//              a1 + 2*a2*trigger_time_ + 3*a3*trigger)time_^2,
-//              a1 + 2*a2*trigger_time_ + 3*a3*trigger)time_^2;
+
+    p_targ = motionPrimitives_.getPosition(trigger_time_);
+    v_targ = motionPrimitives_.getVelocity(trigger_time_);
+
   }
   else if(mode_ == MODE_REFERENCE){
     theta_ = traj_omega_* trigger_time_;
