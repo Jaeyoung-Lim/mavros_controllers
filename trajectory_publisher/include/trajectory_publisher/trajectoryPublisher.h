@@ -56,9 +56,10 @@ private:
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
   int target_trajectoryID_;
+  int num_primitives_;
   int motion_selector_;
 
-  trajectory motionPrimitives_;
+  std::vector<trajectory> motionPrimitives_;
 
 
 public:
@@ -77,6 +78,8 @@ public:
   void refCallback(const ros::TimerEvent& event);
   bool triggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
   void trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message);
+  void motionselectorCallback(const std_msgs::Int32& selector);
+
 
   };
 

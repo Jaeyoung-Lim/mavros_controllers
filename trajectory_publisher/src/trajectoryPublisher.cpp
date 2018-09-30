@@ -8,11 +8,12 @@ using namespace std;
 using namespace Eigen;
 trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private) :
   nh_(nh),
-  nh_private_(nh_private),
-  motionPrimitives_(0.1) {
+  nh_private_(nh_private) {
 
   trajectoryPub_ = nh_.advertise<nav_msgs::Path>("reference/trajectory", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
+  motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
+
   trajloop_timer_ = nh_.createTimer(ros::Duration(1), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
 
@@ -23,6 +24,9 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/initpos_z", init_pos_z_, 1.0);
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
   nh_.param<int>("/trajectory_publisher/trajectoryID", target_trajectoryID_, 0);
+  nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 3);
+
+  for(int i = 0; i++; i < num_primitives_) motionPrimitives_.push_back(trajectory(0.1));
 
   traj_axis_ << 0.0, 0.0, 1.0;
   p_targ << 0.0, 0.0, 0.0;
@@ -34,7 +38,7 @@ void trajectoryPublisher::setTrajectory(int ID) {
   double radius = 0, omega = 0;
   Eigen::Vector3d axis, initpos;
 
-  switch (ID) {
+  switch (ID) {//TODO: Move standard trajectories to the trajectory class
     case TRAJ_STATIONARY: //stationary trajectory
       omega = 0.0;
       radius = 0.0;
@@ -76,8 +80,8 @@ void trajectoryPublisher::moveReference() {
 
   if(mode_ == MODE_PRIMITIVES){
 
-    p_targ = motionPrimitives_.getPosition(trigger_time_);
-    v_targ = motionPrimitives_.getVelocity(trigger_time_);
+    p_targ = motionPrimitives_.at(motion_selector_).getPosition(trigger_time_);
+    v_targ = motionPrimitives_.at(motion_selector_).getVelocity(trigger_time_);
 
   }
   else if(mode_ == MODE_REFERENCE){
@@ -186,6 +190,12 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
   }
   res.success = true;
   res.message = "trajectory triggered";
+}
+
+void trajectoryPublisher::motionselectorCallback(const std_msgs::Int32& selector_msg){
+
+  motion_selector_ = selector_msg.data;
+
 }
 
 void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_msg) {
