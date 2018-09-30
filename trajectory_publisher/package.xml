@@ -56,7 +56,8 @@
   <build_depend>mav_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>tf</build_depend>
-
+  <build_depend>kindr</build_depend>
+  <build_depend>mav_planning_msgs</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>catkin_simple</run_depend>
@@ -64,7 +65,7 @@
   <run_depend>geometry_msgs</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>tf</run_depend>
-  <run_depend>mavros</run_depend>
+  <run_depend>mav_planning_msgs</run_depend>
 
 
 

@@ -3,9 +3,12 @@
 #ifndef TRAJECTORYPUBLISHER_H
 #define TRAJECTORYPUBLISHER_H
 
-#define MODE_CIRCLE 1
-#define MODE_LAMNISCATE 2
-#define MODE_STATIONARY
+#define TRAJ_STATIONARY 0
+#define TRAJ_CIRCLE 1
+#define TRAJ_LAMNISCATE 2
+
+#define MODE_PRIMITIVES 1
+#define MODE_REFERENCE 2
 
 #include <stdio.h>
 #include <cstdlib>
@@ -19,6 +22,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <std_srvs/SetBool.h>
 #include <nav_msgs/Path.h>
+#include <mav_planning_msgs/PolynomialTrajectory4D.h>
 
 using namespace std;
 using namespace Eigen;
@@ -32,17 +36,21 @@ private:
   ros::ServiceServer trajtriggerServ_;
   ros::Timer trajloop_timer_;
   ros::Timer refloop_timer_;
+  ros::Time start_time_, curr_time_;
 
   nav_msgs::Path refTrajectory_;
   geometry_msgs::TwistStamped refState_;
 
   int counter;
+  int mode_;
   Eigen::Vector3d target_initpos;
   Eigen::Vector3d traj_axis_;
   Eigen::Vector3d p_targ, v_targ;
   double traj_radius_, traj_omega_;
   double theta_ = 0.0;
   double controlUpdate_dt_;
+  double trigger_time_;
+  double init_pos_x_, init_pos_y_, init_pos_z_;
   int target_trajectoryID_;
 
 
@@ -61,7 +69,9 @@ public:
   void loopCallback(const ros::TimerEvent& event);
   void refCallback(const ros::TimerEvent& event);
   bool triggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
-};
+  void trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message);
+
+  };
 
 
 #endif
