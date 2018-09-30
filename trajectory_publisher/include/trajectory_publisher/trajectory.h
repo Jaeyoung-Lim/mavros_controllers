@@ -17,6 +17,8 @@ class trajectory {
 
   public:
     trajectory(double duration);
+    void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);
+    void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc);
     void setCoefficients(Eigen::VectorXd &x_coefficients, Eigen::VectorXd &y_coefficients, Eigen::VectorXd &z_coefficients);
     Eigen::VectorXd getCoefficients(int dim);
     Eigen::Vector3d getPosition(double time);

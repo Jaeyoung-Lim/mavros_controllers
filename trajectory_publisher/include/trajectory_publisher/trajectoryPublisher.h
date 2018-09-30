@@ -37,6 +37,8 @@ private:
   ros::Publisher trajectoryPub_;
   ros::Publisher referencePub_;
   ros::Subscriber motionselectorSub_;
+  ros::Subscriber mavposeSub_;
+  ros::Subscriber mavtwistSub_;
   ros::ServiceServer trajtriggerServ_;
   ros::Timer trajloop_timer_;
   ros::Timer refloop_timer_;
@@ -50,9 +52,11 @@ private:
   Eigen::Vector3d target_initpos;
   Eigen::Vector3d traj_axis_;
   Eigen::Vector3d p_targ, v_targ;
+  Eigen::Vector3d p_mav_, v_mav_;
   double traj_radius_, traj_omega_;
   double theta_ = 0.0;
   double controlUpdate_dt_;
+  double primitive_duration_;
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
   int target_trajectoryID_;
@@ -60,6 +64,7 @@ private:
   int motion_selector_;
 
   std::vector<trajectory> motionPrimitives_;
+  std::vector<Eigen::Vector3d> inputs_;
 
 
 public:
@@ -73,13 +78,16 @@ public:
   void pubrefTrajectory();
   void pubrefState();
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation);
+  void initializePrimitives();
+  void updatePrimitives();
   Eigen::Vector3d getTargetPosition();
   void loopCallback(const ros::TimerEvent& event);
   void refCallback(const ros::TimerEvent& event);
   bool triggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
   void trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message);
   void motionselectorCallback(const std_msgs::Int32& selector);
-
+  void mavposeCallback(const geometry_msgs::PoseStamped& msg);
+  void mavtwistCallback(const geometry_msgs::TwistStamped& msg);
 
   };
 

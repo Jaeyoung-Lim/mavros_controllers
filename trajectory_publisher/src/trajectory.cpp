@@ -23,6 +23,34 @@ void trajectory::setCoefficients(Eigen::VectorXd &x_coefficients, Eigen::VectorX
 
 }
 
+void trajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel){
+  //Generate primitives based on current state for smooth trajectory
+  c_x_(0) = pos(0);
+  c_y_(0) = pos(1);
+  c_z_(0) = pos(2);
+
+  c_x_(1) = vel(0);
+  c_y_(1) = vel(1);
+  c_z_(1) = vel(2);
+
+}
+
+void trajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc){
+  //Generate primitives based on current state for smooth trajectory
+  c_x_(0) = pos(0);
+  c_y_(0) = pos(1);
+  c_z_(0) = pos(2);
+
+  c_x_(1) = vel(0);
+  c_y_(1) = vel(1);
+  c_z_(1) = vel(2);
+
+  c_x_(2) = acc(0);
+  c_y_(2) = acc(1);
+  c_z_(2) = acc(2);
+
+}
+
 Eigen::VectorXd trajectory::getCoefficients(int dim){
 
   switch(dim) {

@@ -13,6 +13,8 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   trajectoryPub_ = nh_.advertise<nav_msgs::Path>("reference/trajectory", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
+  mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &trajectoryPublisher::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
+  mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity", 1, &trajectoryPublisher::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
 
   trajloop_timer_ = nh_.createTimer(ros::Duration(1), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
@@ -23,10 +25,22 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/initpos_y", init_pos_y_, 0.0);
   nh_.param<double>("/trajectory_publisher/initpos_z", init_pos_z_, 1.0);
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
+  nh_.param<double>("/trajectory_publisher/horizon", primitive_duration_, 1.0);
   nh_.param<int>("/trajectory_publisher/trajectoryID", target_trajectoryID_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 3);
+  nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 3);
 
-  for(int i = 0; i++; i < num_primitives_) motionPrimitives_.push_back(trajectory(0.1));
+
+  Vector3d inputMatrix[num_primitives_];
+
+  inputMatrix[0] << 0.0, 0.0, 0.0;
+  inputMatrix[1] << 1.0, 0.0, 0.0;
+  inputMatrix[2] << -1.0, 0.0, 0.0;
+
+  for(int i = 0; i++; i < num_primitives_){
+    motionPrimitives_.push_back(trajectory(primitive_duration_));
+    inputs_.push_back(Eigen::Vector3d(inputMatrix[i]));
+  }
 
   traj_axis_ << 0.0, 0.0, 1.0;
   p_targ << 0.0, 0.0, 0.0;
@@ -101,6 +115,18 @@ void trajectoryPublisher::moveReference() {
                + (1 - std::cos(theta_)) * traj_axis_.dot(target_initpos) * traj_axis_;
       v_targ = traj_omega_ * traj_axis_.cross(p_targ); //TODO: This is wrong
     }
+  }
+}
+
+void trajectoryPublisher::initializePrimitives(){
+  for(int i = 0; i++; i < num_primitives_){
+    motionPrimitives_.at(i).generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
+  }
+}
+
+void trajectoryPublisher::updatePrimitives(){
+  for(int i = 0; i++; i < num_primitives_){
+    motionPrimitives_.at(i).generatePrimitives(p_mav_, v_mav_);
   }
 }
 
@@ -195,6 +221,8 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
 void trajectoryPublisher::motionselectorCallback(const std_msgs::Int32& selector_msg){
 
   motion_selector_ = selector_msg.data;
+  updatePrimitives();
+  start_time_ = ros::Time::now();
 
 }
 
@@ -206,4 +234,18 @@ void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::Polynomial
 //
 //  motionPrimitives_.setPolynomial();
 
+}
+
+void trajectoryPublisher::mavposeCallback(const geometry_msgs::PoseStamped& msg){
+  //TODO: Do we have to do time delay compensation? : Maybe...
+  p_mav_(0) = msg.pose.position.x;
+  p_mav_(1) = msg.pose.position.y;
+  p_mav_(2) = msg.pose.position.z;
+}
+
+void trajectoryPublisher::mavtwistCallback(const geometry_msgs::TwistStamped& msg) {
+  //TODO: Do we have to do time delay compensation? : Maybe...
+  v_mav_(0) = msg.twist.linear.x;
+  v_mav_(1) = msg.twist.linear.y;
+  v_mav_(2) = msg.twist.linear.z;
 }
