@@ -158,24 +158,22 @@ geometry_msgs::PoseStamped trajectoryPublisher::vector3d2PoseStampedMsg(Eigen::V
 
 void trajectoryPublisher::pubrefTrajectory(){
 
-int N = (int) 2*3.141592 / this->getTrajectoryOmega() / this->getTrajectoryUpdateRate(); //Resolution of the trajectory to be published
-double theta;
-Eigen::Vector3d targetPosition;
-Eigen::Vector4d targetOrientation;
-targetOrientation << 1.0, 0.0, 0.0, 0.0;
-geometry_msgs::PoseStamped targetPoseStamped;
+  double dt = motionPrimitives_.at(motion_selector_).getsamplingTime();
+  int N = motionPrimitives_.at(motion_selector_).getDuration()/dt; //Resolution of the trajectory to be published
+  double theta;
+  Eigen::Vector3d targetPosition;
+  Eigen::Vector4d targetOrientation;
+  targetOrientation << 1.0, 0.0, 0.0, 0.0;
+  geometry_msgs::PoseStamped targetPoseStamped;
 
-refTrajectory_.header.stamp = ros::Time::now();
-refTrajectory_.header.frame_id = 1;
+  refTrajectory_.header.stamp = ros::Time::now();
+  refTrajectory_.header.frame_id = 1;
 
-for(int i = 0 ; i < N ; i++){
-  theta = 2 * 3.141592 *((double) i / (double) N);
-  this->setTrajectoryTheta(theta);
-  this->moveReference();
-  targetPosition = this->getTargetPosition();
-  targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
-  refTrajectory_.poses.push_back(targetPoseStamped);
-}
+  for(int i = 0 ; i < N ; i++){
+    targetPosition = motionPrimitives_.at(motion_selector_).getPosition(i*dt);
+    targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
+    refTrajectory_.poses.push_back(targetPoseStamped);
+  }
 }
 
 void trajectoryPublisher::pubrefState(){
