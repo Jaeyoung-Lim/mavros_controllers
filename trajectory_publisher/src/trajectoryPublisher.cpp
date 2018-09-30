@@ -143,63 +143,23 @@ double trajectoryPublisher::getTrajectoryUpdateRate(){
   return controlUpdate_dt_;
 }
 
-geometry_msgs::PoseStamped trajectoryPublisher::vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation){
-  geometry_msgs::PoseStamped encode_msg;
-  encode_msg.header.stamp = ros::Time::now();
-  encode_msg.header.frame_id = "map";
-  encode_msg.pose.orientation.w = orientation(0);
-  encode_msg.pose.orientation.x = orientation(1);
-  encode_msg.pose.orientation.y = orientation(2);
-  encode_msg.pose.orientation.z = orientation(3);
-  encode_msg.pose.position.x = position(0);
-  encode_msg.pose.position.y = position(1);
-  encode_msg.pose.position.z = position(2);
-  return encode_msg;
-}
-
 void trajectoryPublisher::pubrefTrajectory(int selector){
 
-  double dt = motionPrimitives_.at(selector).getsamplingTime();
-  int N = motionPrimitives_.at(selector).getDuration()/dt; //Resolution of the trajectory to be published
-
-  Eigen::Vector3d targetPosition;
-  Eigen::Vector4d targetOrientation;
-  targetOrientation << 1.0, 0.0, 0.0, 0.0;
-  geometry_msgs::PoseStamped targetPoseStamped;
-
+  refTrajectory_ = motionPrimitives_.at(selector).getSegment();
   refTrajectory_.header.stamp = ros::Time::now();
   refTrajectory_.header.frame_id = 1;
-
-  for(int i = 0 ; i < N ; i++){
-    targetPosition = motionPrimitives_.at(motion_selector_).getPosition(i*dt);
-    targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
-    refTrajectory_.poses.push_back(targetPoseStamped);
-  }
   trajectoryPub_.publish(refTrajectory_);
+
 }
 
 void trajectoryPublisher::pubprimitiveTrajectory(){
 
-  double dt = motionPrimitives_.at(0).getsamplingTime(); //Assumes all primitives have the same duration
-  //TODO: allow different durations
-  int N = motionPrimitives_.at(0).getDuration()/dt; //Resolution of the trajectory to be published
-
-  Eigen::Vector3d targetPosition;
-  Eigen::Vector4d targetOrientation;
-  targetOrientation << 1.0, 0.0, 0.0, 0.0;
-  geometry_msgs::PoseStamped targetPoseStamped;
-
-  refTrajectory_.header.stamp = ros::Time::now();
-  refTrajectory_.header.frame_id = 1;
-
-  for(int j = 0; j < num_primitives_; j++){
-    for(int i = 0 ; i < N ; i++){
-      targetPosition = motionPrimitives_.at(j).getPosition(i*dt);
-      targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
-      refTrajectory_.poses.push_back(targetPoseStamped);
-    }
+  for(int i =0 ; i++ ; i<num_primitives_){
+    refTrajectory_ = motionPrimitives_.at(i).getSegment();
+    refTrajectory_.header.stamp = ros::Time::now();
+    refTrajectory_.header.frame_id = 1;
+    primitivePub_.publish(refTrajectory_); //TODO: Good enough for now, but should vectorize this for different primitives
   }
-  primitivePub_.publish(refTrajectory_);
 }
 
 void trajectoryPublisher::pubrefState(){

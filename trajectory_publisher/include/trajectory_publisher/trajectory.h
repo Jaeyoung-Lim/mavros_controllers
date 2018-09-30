@@ -6,6 +6,8 @@
 #define TRAJECTORY_PUBLISHER_TRAJECTORY_H
 
 #include <Eigen/Dense>
+#include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseStamped.h>
 
 
 class trajectory {
@@ -25,6 +27,9 @@ class trajectory {
     Eigen::Vector3d getVelocity(double time);
     double getsamplingTime(){return dt_;};
     double getDuration(){ return T_;};
+    nav_msgs::Path getSegment();
+    geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation);
+
 };
 
 

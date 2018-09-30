@@ -79,7 +79,6 @@ public:
   void pubrefTrajectory(int selector);
   void pubprimitiveTrajectory();
   void pubrefState();
-  geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation);
   void initializePrimitives();
   void updatePrimitives();
   Eigen::Vector3d getTargetPosition();
