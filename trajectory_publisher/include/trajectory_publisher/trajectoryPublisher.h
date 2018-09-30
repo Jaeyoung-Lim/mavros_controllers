@@ -36,6 +36,7 @@ private:
   ros::NodeHandle nh_private_;
   ros::Publisher trajectoryPub_;
   ros::Publisher referencePub_;
+  ros::Publisher primitivePub_;
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
   ros::Subscriber mavtwistSub_;
@@ -44,7 +45,7 @@ private:
   ros::Timer refloop_timer_;
   ros::Time start_time_, curr_time_;
 
-  nav_msgs::Path refTrajectory_;
+  nav_msgs::Path refTrajectory_, primTrajectory_;
   geometry_msgs::TwistStamped refState_;
 
   int counter;
@@ -75,7 +76,8 @@ public:
   double getTrajectoryOmega();
   double getTrajectoryUpdateRate();
   void moveReference();
-  void pubrefTrajectory();
+  void pubrefTrajectory(int selector);
+  void pubprimitiveTrajectory();
   void pubrefState();
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation);
   void initializePrimitives();

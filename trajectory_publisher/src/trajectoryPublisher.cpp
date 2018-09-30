@@ -11,6 +11,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_private_(nh_private) {
 
   trajectoryPub_ = nh_.advertise<nav_msgs::Path>("reference/trajectory", 1);
+  primitivePub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitives", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &trajectoryPublisher::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
@@ -156,11 +157,11 @@ geometry_msgs::PoseStamped trajectoryPublisher::vector3d2PoseStampedMsg(Eigen::V
   return encode_msg;
 }
 
-void trajectoryPublisher::pubrefTrajectory(){
+void trajectoryPublisher::pubrefTrajectory(int selector){
 
-  double dt = motionPrimitives_.at(motion_selector_).getsamplingTime();
-  int N = motionPrimitives_.at(motion_selector_).getDuration()/dt; //Resolution of the trajectory to be published
-  double theta;
+  double dt = motionPrimitives_.at(selector).getsamplingTime();
+  int N = motionPrimitives_.at(selector).getDuration()/dt; //Resolution of the trajectory to be published
+
   Eigen::Vector3d targetPosition;
   Eigen::Vector4d targetOrientation;
   targetOrientation << 1.0, 0.0, 0.0, 0.0;
@@ -174,6 +175,31 @@ void trajectoryPublisher::pubrefTrajectory(){
     targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
     refTrajectory_.poses.push_back(targetPoseStamped);
   }
+  trajectoryPub_.publish(refTrajectory_);
+}
+
+void trajectoryPublisher::pubprimitiveTrajectory(){
+
+  double dt = motionPrimitives_.at(0).getsamplingTime(); //Assumes all primitives have the same duration
+  //TODO: allow different durations
+  int N = motionPrimitives_.at(0).getDuration()/dt; //Resolution of the trajectory to be published
+
+  Eigen::Vector3d targetPosition;
+  Eigen::Vector4d targetOrientation;
+  targetOrientation << 1.0, 0.0, 0.0, 0.0;
+  geometry_msgs::PoseStamped targetPoseStamped;
+
+  refTrajectory_.header.stamp = ros::Time::now();
+  refTrajectory_.header.frame_id = 1;
+
+  for(int j = 0; j < num_primitives_; j++){
+    for(int i = 0 ; i < N ; i++){
+      targetPosition = motionPrimitives_.at(j).getPosition(i*dt);
+      targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
+      refTrajectory_.poses.push_back(targetPoseStamped);
+    }
+  }
+  primitivePub_.publish(refTrajectory_);
 }
 
 void trajectoryPublisher::pubrefState(){
@@ -190,7 +216,8 @@ void trajectoryPublisher::pubrefState(){
 
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
   //Slow Loop publishing trajectory information
-  trajectoryPub_.publish(refTrajectory_);
+  pubrefTrajectory(motion_selector_);
+  pubprimitiveTrajectory();
 }
 
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
