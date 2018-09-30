@@ -191,15 +191,11 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
   res.message = "trajectory triggered";
 }
 
-void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message) {
-
-  if (segments_message.segments.empty()) {
-    ROS_WARN("Trajectory sampler: received empty waypoint message");
-    return;
-  } else {
-    ROS_INFO("Trajectory sampler: received %lu waypoints", segments_message.segments.size());
-  }
+void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::PolynomialSegment4D& segments_msg) {
 
   start_time_ = ros::Time::now();
-  //TODO: Read polynomial coefficients
+  segments_message.segments;
+
+  motionPrimitives_.setPolynomial();
+
 }
