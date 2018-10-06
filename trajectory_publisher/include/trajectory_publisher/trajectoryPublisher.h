@@ -3,13 +3,6 @@
 #ifndef TRAJECTORYPUBLISHER_H
 #define TRAJECTORYPUBLISHER_H
 
-#define TRAJ_STATIONARY 0
-#define TRAJ_CIRCLE 1
-#define TRAJ_LAMNISCATE 2
-
-#define MODE_PRIMITIVES 1
-#define MODE_REFERENCE 2
-
 #include <stdio.h>
 #include <cstdlib>
 #include <string>
@@ -50,17 +43,13 @@ private:
 
   int counter;
   int mode_;
-  Eigen::Vector3d target_initpos;
-  Eigen::Vector3d traj_axis_;
   Eigen::Vector3d p_targ, v_targ;
   Eigen::Vector3d p_mav_, v_mav_;
-  double traj_radius_, traj_omega_;
   double theta_ = 0.0;
   double controlUpdate_dt_;
   double primitive_duration_;
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
-  int target_trajectoryID_;
   int num_primitives_;
   int motion_selector_;
 
@@ -75,7 +64,7 @@ public:
   void setTrajectoryTheta(double in);
   double getTrajectoryOmega();
   double getTrajectoryUpdateRate();
-  void moveReference();
+  void updateReference();
   void pubrefTrajectory(int selector);
   void pubprimitiveTrajectory();
   void pubrefState();
