@@ -6,7 +6,7 @@
   <arg name="tgt_component" default="1" />
   <arg name="command_input" default="2" />
   <arg name="gazebo_simulation" default="true" />
-  <arg name="visualization" default="false"/>
+  <arg name="visualization" default="true"/>
 
 
   <node pkg="geometric_controller" type="geometric_controller" name="geometric_controller" output="screen">
@@ -15,6 +15,10 @@
           <param name="ctrl_mode" value="$(arg command_input)" />
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
   </node>
+
+  <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
+  </node>
+
 
   <node name="mavros" pkg="mavros" type="mavros_node" output="screen">
       <param name="fcu_url" value="$(arg fcu_url)" />

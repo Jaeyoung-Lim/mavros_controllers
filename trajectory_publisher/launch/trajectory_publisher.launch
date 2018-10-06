@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
+  </node>
+
+
+</launch>
