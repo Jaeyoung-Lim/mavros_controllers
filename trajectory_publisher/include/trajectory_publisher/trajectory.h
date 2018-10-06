@@ -15,10 +15,11 @@ class trajectory {
     int N; //Degree of polynomial
     double dt_; //Sampling time
     double T_;
-    Eigen::VectorXd c_x_, c_y_, c_z_; //Coefficients for polynomial representation
+    Eigen::Vector3d c_x_, c_y_, c_z_; //Coefficients for polynomial representation
 
   public:
-    trajectory(double duration);
+    trajectory();
+    ~trajectory();
     void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);
     void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc);
     void setCoefficients(Eigen::VectorXd &x_coefficients, Eigen::VectorXd &y_coefficients, Eigen::VectorXd &z_coefficients);

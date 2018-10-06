@@ -4,16 +4,20 @@
 
 #include "trajectory_publisher/trajectory.h"
 
-trajectory::trajectory(double duration) :
+trajectory::trajectory() :
   N(0),
   dt_(0.1),
-  T_(duration) {
+  T_(0.1) {
 
   c_x_ << 0.0, 0.0, 0.0;
   c_y_ << 0.0, 0.0, 0.0;
   c_z_ << 0.0, 0.0, 0.0;
 
 }
+
+trajectory::~trajectory(){
+
+};
 
 void trajectory::setCoefficients(Eigen::VectorXd &x_coefficients, Eigen::VectorXd &y_coefficients, Eigen::VectorXd &z_coefficients){
 
@@ -99,6 +103,7 @@ nav_msgs::Path trajectory::getSegment(){
     targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
     segment.poses.push_back(targetPoseStamped);
   }
+  return segment;
 }
 
 geometry_msgs::PoseStamped trajectory::vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation){

@@ -8,9 +8,10 @@ using namespace std;
 using namespace Eigen;
 trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private) :
   nh_(nh),
-  nh_private_(nh_private) {
+  nh_private_(nh_private),
+  motion_selector_(0) {
 
-  trajectoryPub_ = nh_.advertise<nav_msgs::Path>("reference/trajectory", 1);
+  trajectoryPub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/trajectory", 1);
   primitivePub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitives", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
@@ -38,10 +39,8 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   inputMatrix[1] << 1.0, 0.0, 0.0;
   inputMatrix[2] << -1.0, 0.0, 0.0;
 
-  for(int i = 0; i++; i < num_primitives_){
-    motionPrimitives_.push_back(trajectory(primitive_duration_));
-    inputs_.push_back(Eigen::Vector3d(inputMatrix[i]));
-  }
+  motionPrimitives_.resize(num_primitives_);
+
 
   traj_axis_ << 0.0, 0.0, 1.0;
   p_targ << 0.0, 0.0, 0.0;
@@ -146,6 +145,7 @@ double trajectoryPublisher::getTrajectoryUpdateRate(){
 void trajectoryPublisher::pubrefTrajectory(int selector){
 
   refTrajectory_ = motionPrimitives_.at(selector).getSegment();
+
   refTrajectory_.header.stamp = ros::Time::now();
   refTrajectory_.header.frame_id = 1;
   trajectoryPub_.publish(refTrajectory_);
@@ -177,13 +177,12 @@ void trajectoryPublisher::pubrefState(){
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
   //Slow Loop publishing trajectory information
   pubrefTrajectory(motion_selector_);
-  pubprimitiveTrajectory();
+//  pubprimitiveTrajectory();
 }
 
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
   //Fast Loop publishing reference states
-  moveReference();
-  pubrefState();
+//  pubrefState();
 }
 
 bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
