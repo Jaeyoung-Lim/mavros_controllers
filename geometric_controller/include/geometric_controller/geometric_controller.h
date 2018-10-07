@@ -5,7 +5,6 @@
 
 #include <ros/ros.h>
 #include <ros/subscribe_options.h>
-#include <kindr/Core>
 #include <tf/transform_broadcaster.h>
 #include <dynamic_reconfigure/server.h>
 
