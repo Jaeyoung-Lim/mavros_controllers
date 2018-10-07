@@ -29,7 +29,7 @@ private:
   ros::NodeHandle nh_private_;
   ros::Publisher trajectoryPub_;
   ros::Publisher referencePub_;
-  ros::Publisher primitivePub_;
+  std::vector<ros::Publisher> primitivePub_;
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
   ros::Subscriber mavtwistSub_;
