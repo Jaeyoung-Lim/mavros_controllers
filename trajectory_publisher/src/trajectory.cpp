@@ -7,15 +7,15 @@
 trajectory::trajectory(int type) :
   N(0),
   dt_(0.1),
-  T_(10.0),
+  T_(1.0),
   type_(type) {
 
   traj_axis_ << 0.0, 0.0, 1.0;
   target_initpos << 0.0, 0.0, 0.0;
 
-  c_x_ << 0.0, 0.0, 0.0;
-  c_y_ << 0.0, 0.0, 0.0;
-  c_z_ << 0.0, 0.0, 0.0;
+  c_x_ << 0.0, 0.0, 0.0, 0.0;
+  c_y_ << 0.0, 0.0, 0.0, 0.0;
+  c_z_ << 0.0, 0.0, 0.0, 0.0;
 
 }
 
@@ -43,7 +43,27 @@ void trajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel){
 
 }
 
-void trajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc){
+void trajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk){
+  //Generate primitives based on current state for smooth trajectory
+  c_x_(0) = pos(0);
+  c_y_(0) = pos(1);
+  c_z_(0) = pos(2);
+
+  c_x_(1) = vel(0);
+  c_y_(1) = vel(1);
+  c_z_(1) = vel(2);
+
+  c_x_(2) = 0.0; //Acceleration is neglected
+  c_y_(2) = 0.0;
+  c_z_(2) = 0.0;
+
+  c_x_(3) = jerk(0);
+  c_y_(3) = jerk(1);
+  c_z_(3) = jerk(2);
+
+}
+
+void trajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk){
   //Generate primitives based on current state for smooth trajectory
   c_x_(0) = pos(0);
   c_y_(0) = pos(1);
@@ -56,6 +76,10 @@ void trajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Ei
   c_x_(2) = acc(0);
   c_y_(2) = acc(1);
   c_z_(2) = acc(2);
+
+  c_x_(3) = jerk(0);
+  c_y_(3) = jerk(1);
+  c_z_(3) = jerk(2);
 
 }
 
@@ -81,9 +105,9 @@ Eigen::Vector3d trajectory::getPosition(double time){
       position << 0.0, 0.0, 0.0;
       break;
     case TRAJ_POLYNOMIAL :
-      position << c_x_(0) + c_x_(1) * (double) time + c_x_(2) * pow((double) time, 2) + c_x_(3) * pow((double) time, 3),
-              c_y_(0) + c_y_(1) * (double) time + c_y_(2) * pow((double) time, 2) + c_y_(3) * pow((double) time, 3),
-              c_z_(0) + c_z_(1) * (double) time + c_z_(2) * pow((double) time, 2) + c_z_(3) * pow((double) time, 3);
+      position << c_x_(0) + c_x_(1) * time + c_x_(2) * pow(time, 2) + c_x_(3) * pow(time, 3),
+              c_y_(0) + c_y_(1) * time + c_y_(2) * pow(time, 2) + c_y_(3) * pow(time, 3),
+              c_z_(0) + c_z_(1) * time + c_z_(2) * pow(time, 2) + c_z_(3) * pow(time, 3);
       break;
     case TRAJ_CIRCLE :
 
