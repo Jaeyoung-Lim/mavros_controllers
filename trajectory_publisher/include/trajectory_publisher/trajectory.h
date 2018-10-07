@@ -9,14 +9,10 @@
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
 
-#define TRAJ_STATIONARY 0
-#define TRAJ_CIRCLE 1
-#define TRAJ_LAMNISCATE 2
-
-#define ZERO 0
-#define POLYNOMIAL 1
-#define CIRCLE 2
-#define LAMNISCATE 3
+#define TRAJ_ZERO 0
+#define TRAJ_POLYNOMIAL 1
+#define TRAJ_CIRCLE 2
+#define TRAJ_LAMNISCATE 3
 
 
 class trajectory {
@@ -34,7 +30,7 @@ class trajectory {
 
 
 public:
-    trajectory();
+    trajectory(int type);
     ~trajectory();
     void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);
     void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc);
