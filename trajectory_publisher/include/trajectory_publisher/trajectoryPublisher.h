@@ -38,7 +38,8 @@ private:
   ros::Timer refloop_timer_;
   ros::Time start_time_, curr_time_;
 
-  nav_msgs::Path refTrajectory_, primTrajectory_;
+  nav_msgs::Path refTrajectory_;
+  nav_msgs::Path primTrajectory_;
   geometry_msgs::TwistStamped refState_;
 
   int counter;

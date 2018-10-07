@@ -39,15 +39,11 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   inputs_.at(5) << 0.0, 0.0, 1.0;
   inputs_.at(6) << 0.0, 0.0, -1.0;
 
-  inputs_.resize(num_primitives_);
-  primitivePub_.resize(num_primitives_);
   for(int i = 0;  i < num_primitives_; i++){
     motionPrimitives_.emplace_back(TRAJ_POLYNOMIAL);
+    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
     inputs_.at(i) = inputs_.at(i) * max_jerk_;
-
-    primitivePub_.at(i) = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset"+std::to_string(i), 1);
   }
-
 
   initializePrimitives();
 
@@ -101,11 +97,11 @@ void trajectoryPublisher::pubrefTrajectory(int selector){
 
 void trajectoryPublisher::pubprimitiveTrajectory(){
 
-  for(int i =0 ; i++ ; i<num_primitives_){
-    refTrajectory_ = motionPrimitives_.at(i).getSegment();
-    refTrajectory_.header.stamp = ros::Time::now();
-    refTrajectory_.header.frame_id = "map";
-    primitivePub_.at(i).publish(refTrajectory_);
+  for(int i = 0; i < num_primitives_; i++ ){
+    primTrajectory_ = motionPrimitives_.at(i).getSegment();
+    primTrajectory_.header.stamp = ros::Time::now();
+    primTrajectory_.header.frame_id = "map";
+    primitivePub_.at(i).publish(primTrajectory_);
   }
 
 }
@@ -124,8 +120,9 @@ void trajectoryPublisher::pubrefState(){
 
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
   //Slow Loop publishing trajectory information
-  pubprimitiveTrajectory();
   pubrefTrajectory(motion_selector_);
+  pubprimitiveTrajectory();
+
 }
 
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
