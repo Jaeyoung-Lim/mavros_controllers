@@ -12,7 +12,6 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   motion_selector_(0) {
 
   trajectoryPub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/trajectory", 1);
-  primitivePub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitivesets", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &trajectoryPublisher::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
@@ -42,6 +41,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
 
   for(int i = 0;  i < num_primitives_; i++){
     motionPrimitives_.emplace_back(TRAJ_POLYNOMIAL);
+    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
     inputs_.at(i) = inputs_.at(i) * max_jerk_;
   }
 
@@ -97,11 +97,11 @@ void trajectoryPublisher::pubrefTrajectory(int selector){
 
 void trajectoryPublisher::pubprimitiveTrajectory(){
 
-  for(int i =0 ; i++ ; i<num_primitives_){
-    refTrajectory_ = motionPrimitives_.at(i).getSegment();
-    refTrajectory_.header.stamp = ros::Time::now();
-    refTrajectory_.header.frame_id = "map";
-    primitivePub_.publish(refTrajectory_);
+  for(int i = 0; i < num_primitives_; i++ ){
+    primTrajectory_ = motionPrimitives_.at(i).getSegment();
+    primTrajectory_.header.stamp = ros::Time::now();
+    primTrajectory_.header.frame_id = "map";
+    primitivePub_.at(i).publish(primTrajectory_);
   }
 
 }
@@ -120,8 +120,9 @@ void trajectoryPublisher::pubrefState(){
 
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
   //Slow Loop publishing trajectory information
-  pubprimitiveTrajectory();
   pubrefTrajectory(motion_selector_);
+  pubprimitiveTrajectory();
+
 }
 
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
