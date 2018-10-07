@@ -12,13 +12,13 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   motion_selector_(0) {
 
   trajectoryPub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/trajectory", 1);
-  primitivePub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitives", 1);
+  primitivePub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitivesets", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &trajectoryPublisher::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
   mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity", 1, &trajectoryPublisher::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
 
-  trajloop_timer_ = nh_.createTimer(ros::Duration(1), &trajectoryPublisher::loopCallback, this);
+  trajloop_timer_ = nh_.createTimer(ros::Duration(0.1), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
 
   trajtriggerServ_ = nh_.advertiseService("start", &trajectoryPublisher::triggerCallback, this);
@@ -32,16 +32,20 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 3);
 
 
-  Vector3d inputMatrix[num_primitives_];
+//  motionPrimitives_.resize(num_primitives_ );
+  for(int i = 0;  i < num_primitives_; i++) motionPrimitives_.emplace_back(TRAJ_POLYNOMIAL);
 
-  inputMatrix[0] << 0.0, 0.0, 0.0;
-  inputMatrix[1] << 1.0, 0.0, 0.0;
-  inputMatrix[2] << -1.0, 0.0, 0.0;
+  inputs_.resize(num_primitives_);
+  inputs_.at(0) << 0.0, 0.0, 0.0;
+  inputs_.at(1) << 1.0, 1.0, 0.0;
+  inputs_.at(2) << -1.0, 1.0, 0.0;
 
-  motionPrimitives_.resize(num_primitives_);
+  initializePrimitives();
 
-  p_targ << init_pos_x_, init_pos_y_, init_pos_y_;
+  p_targ << init_pos_x_, init_pos_y_, init_pos_z_;
   v_targ << 0.0, 0.0, 0.0;
+  motion_selector_ = 1;
+
 }
 
 void trajectoryPublisher::setTrajectoryTheta(double in) {
@@ -58,13 +62,13 @@ void trajectoryPublisher::updateReference() {
 }
 
 void trajectoryPublisher::initializePrimitives(){
-  for(int i = 0; i++; i < num_primitives_){
+  for(int i = 0; i < num_primitives_; i++ ){
     motionPrimitives_.at(i).generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
   }
 }
 
 void trajectoryPublisher::updatePrimitives(){
-  for(int i = 0; i++; i < num_primitives_){
+  for(int i = 0; i < num_primitives_ ; i++ ){
     motionPrimitives_.at(i).generatePrimitives(p_mav_, v_mav_);
   }
 }
@@ -78,11 +82,10 @@ double trajectoryPublisher::getTrajectoryUpdateRate(){
 }
 
 void trajectoryPublisher::pubrefTrajectory(int selector){
-
+  //Publish current trajectory the publisher is publishing
   refTrajectory_ = motionPrimitives_.at(selector).getSegment();
-
   refTrajectory_.header.stamp = ros::Time::now();
-  refTrajectory_.header.frame_id = 1;
+  refTrajectory_.header.frame_id = "map";
   trajectoryPub_.publish(refTrajectory_);
 
 }
@@ -92,9 +95,10 @@ void trajectoryPublisher::pubprimitiveTrajectory(){
   for(int i =0 ; i++ ; i<num_primitives_){
     refTrajectory_ = motionPrimitives_.at(i).getSegment();
     refTrajectory_.header.stamp = ros::Time::now();
-    refTrajectory_.header.frame_id = 1;
-    primitivePub_.publish(refTrajectory_); //TODO: Good enough for now, but should vectorize this for different primitives
+    refTrajectory_.header.frame_id = "map";
+    primitivePub_.publish(refTrajectory_);
   }
+
 }
 
 void trajectoryPublisher::pubrefState(){
@@ -111,13 +115,13 @@ void trajectoryPublisher::pubrefState(){
 
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
   //Slow Loop publishing trajectory information
+  pubprimitiveTrajectory();
   pubrefTrajectory(motion_selector_);
-//  pubprimitiveTrajectory();
 }
 
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
   //Fast Loop publishing reference states
-//  pubrefState();
+  pubrefState();
 }
 
 bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
@@ -152,6 +156,7 @@ void trajectoryPublisher::mavposeCallback(const geometry_msgs::PoseStamped& msg)
   p_mav_(0) = msg.pose.position.x;
   p_mav_(1) = msg.pose.position.y;
   p_mav_(2) = msg.pose.position.z;
+  updatePrimitives();
 
 }
 
@@ -160,5 +165,6 @@ void trajectoryPublisher::mavtwistCallback(const geometry_msgs::TwistStamped& ms
   v_mav_(0) = msg.twist.linear.x;
   v_mav_(1) = msg.twist.linear.y;
   v_mav_(2) = msg.twist.linear.z;
+  updatePrimitives();
 
 }

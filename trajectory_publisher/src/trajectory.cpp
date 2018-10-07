@@ -4,10 +4,11 @@
 
 #include "trajectory_publisher/trajectory.h"
 
-trajectory::trajectory() :
+trajectory::trajectory(int type) :
   N(0),
   dt_(0.1),
-  T_(0.1) {
+  T_(10.0),
+  type_(type) {
 
   traj_axis_ << 0.0, 0.0, 1.0;
   target_initpos << 0.0, 0.0, 0.0;
@@ -76,25 +77,27 @@ Eigen::Vector3d trajectory::getPosition(double time){
   double theta;
 
   switch(type_) {
-    case ZERO :
+    case TRAJ_ZERO :
       position << 0.0, 0.0, 0.0;
-
-    case POLYNOMIAL :
-      position << c_x_(0) + c_x_(1) * time + c_x_(2) * pow(time, 2) + c_x_(3) * pow(time, 3),
-              c_y_(0) + c_y_(1) * time + c_y_(2) * pow(time, 2) + c_y_(3) * pow(time, 3),
-              c_z_(0) + c_z_(1) * time + c_z_(2) * pow(time, 2) + c_z_(3) * pow(time, 3);
-
-    case CIRCLE :
+      break;
+    case TRAJ_POLYNOMIAL :
+      position << c_x_(0) + c_x_(1) * (double) time + c_x_(2) * pow((double) time, 2) + c_x_(3) * pow((double) time, 3),
+              c_y_(0) + c_y_(1) * (double) time + c_y_(2) * pow((double) time, 2) + c_y_(3) * pow((double) time, 3),
+              c_z_(0) + c_z_(1) * (double) time + c_z_(2) * pow((double) time, 2) + c_z_(3) * pow((double) time, 3);
+      break;
+    case TRAJ_CIRCLE :
 
       theta = traj_omega_* time;
       position = std::cos(theta) * target_initpos
                + std::sin(theta) * traj_axis_.cross(target_initpos)
                + (1 - std::cos(theta)) * traj_axis_.dot(target_initpos) * traj_axis_;
-    case LAMNISCATE : //Lemniscate of Genero
+      break;
+    case TRAJ_LAMNISCATE : //Lemniscate of Genero
 
       position = std::cos(theta) * target_initpos
                + std::sin(theta) * std::cos(theta) * traj_axis_.cross(target_initpos)
                + (1 - std::cos(theta)) * traj_axis_.dot(target_initpos) * traj_axis_;
+      break;
   }
   return position;
 }
@@ -104,12 +107,12 @@ Eigen::Vector3d trajectory::getVelocity(double time){
   Eigen::Vector3d velocity;
 
   switch(type_) {
-    case POLYNOMIAL :
+    case TRAJ_POLYNOMIAL :
       velocity << c_x_(1) + c_x_(2) * time * 2 + c_x_(3) * pow(time, 2) * 3,
               c_y_(1) + c_y_(2) * time * 2 + c_y_(3) * pow(time, 2) * 3,
               c_z_(1) + c_z_(2) * time * 2 + c_z_(3) * pow(time, 2) * 3;
 
-    case CIRCLE :
+    case TRAJ_CIRCLE :
       velocity = traj_omega_ * traj_axis_.cross(getPosition(time));
   }
   return velocity;
@@ -163,7 +166,7 @@ void trajectory::setTrajectory(int ID) {
   Eigen::Vector3d axis, initpos;
 
   switch (ID) {//TODO: Move standard trajectories to the trajectory class
-    case TRAJ_STATIONARY: //stationary trajectory
+    case TRAJ_ZERO: //stationary trajectory
       omega = 0.0;
       radius = 0.0;
       axis << 0.0, 0.0, 1.0;
