@@ -22,7 +22,7 @@ class trajectory {
     double T_;
     int type_;
     int target_trajectoryID_;
-    Eigen::Vector3d c_x_, c_y_, c_z_; //Coefficients for polynomial representation
+    Eigen::Vector4d c_x_, c_y_, c_z_; //Coefficients for polynomial representation
     Eigen::Vector3d traj_axis_;
     Eigen::Vector3d target_initpos;
     double traj_radius_, traj_omega_;
@@ -33,7 +33,8 @@ public:
     trajectory(int type);
     ~trajectory();
     void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);
-    void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc);
+    void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk);
+    void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk);
     void setCoefficients(Eigen::VectorXd &x_coefficients, Eigen::VectorXd &y_coefficients, Eigen::VectorXd &z_coefficients);
     void setTrajectory(int ID);
     void setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius, Eigen::Vector3d initpos);

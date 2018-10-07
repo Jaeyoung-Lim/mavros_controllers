@@ -28,17 +28,22 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/initpos_z", init_pos_z_, 1.0);
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
   nh_.param<double>("/trajectory_publisher/horizon", primitive_duration_, 1.0);
-  nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 3);
-  nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 3);
-
-
-//  motionPrimitives_.resize(num_primitives_ );
-  for(int i = 0;  i < num_primitives_; i++) motionPrimitives_.emplace_back(TRAJ_POLYNOMIAL);
+  nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
+  nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
 
   inputs_.resize(num_primitives_);
-  inputs_.at(0) << 0.0, 0.0, 0.0;
-  inputs_.at(1) << 1.0, 1.0, 0.0;
-  inputs_.at(2) << -1.0, 1.0, 0.0;
+  inputs_.at(0) << 0.0, 0.0, 0.0; //Constant jerk inputs for minimim time trajectories
+  inputs_.at(1) << 1.0, 0.0, 0.0;
+  inputs_.at(2) << -1.0, 0.0, 0.0;
+  inputs_.at(3) << 0.0, 1.0, 0.0;
+  inputs_.at(4) << 0.0, -1.0, 0.0;
+  inputs_.at(5) << 0.0, 0.0, 1.0;
+  inputs_.at(6) << 0.0, 0.0, -1.0;
+
+  for(int i = 0;  i < num_primitives_; i++){
+    motionPrimitives_.emplace_back(TRAJ_POLYNOMIAL);
+    inputs_.at(i) = inputs_.at(i) * max_jerk_;
+  }
 
   initializePrimitives();
 
