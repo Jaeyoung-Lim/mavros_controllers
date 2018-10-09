@@ -8,26 +8,9 @@ using namespace std;
 geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private):
   nh_(nh),
   nh_private_(nh_private),
-  max_motor_speed_(150),
   fail_detec_(false),
   ctrl_enable_(true),
-  landing_commanded_(false),
-  ctrl_mode_(2){
-
-  /// Target State is the reference state received from the trajectory
-  /// goalState is the goal the controller is trying to reach
-  goalPos_ << 0.0, 0.0, 1.5; //Initial Position
-  targetPos_ = goalPos_;
-  targetVel_ << 0.0, 0.0, 0.0;
-  mavYaw_ = 0.0;
-  g_ << 0.0, 0.0, -9.8;
-  Kpos_ << -3.0, -5.0, -20.0;
-  Kvel_ << -2.0, -4.0, -5.0;
-  D_ << 0.0, 0.0, 0.0;
-  attctrl_tau_ = 0.2;
-  norm_thrust_const_ = 0.1; // 1 / max acceleration
-  max_fb_acc_ = 7.0;
-  use_gzstates_ = true;
+  landing_commanded_(false){
 
   referenceSub_=nh_.subscribe("reference/setpoint",1, &geometricCtrl::targetCallback,this,ros::TransportHints().tcpNoDelay());
   flatreferenceSub_ = nh_.subscribe("reference/flatsetpoint", 1, &geometricCtrl::flattargetCallback, this, ros::TransportHints().tcpNoDelay());
@@ -48,6 +31,22 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<string>("/geometric_controller/mavname", mav_name_, "iris");
   nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
   nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true);
+  nh_.param<bool>("/geometric_controller/enable_gazebo_state", use_gzstates_, false);
+  nh_.param<double>("/geometric_controller/max_acc", max_fb_acc_, 7.0);
+  nh_.param<double>("/geometric_controller/yaw_heading", mavYaw_, 0.0);
+  nh_.param<double>("/geometric_controller/drag_dx", dx_, 0.0);
+  nh_.param<double>("/geometric_controller/drag_dy", dy_, 0.0);
+  nh_.param<double>("/geometric_controller/drag_dz", dz_, 0.0);
+  nh_.param<double>("/geometric_controller/attctrl_constant", attctrl_tau_, 0.2);
+  nh_.param<double>("/geometric_controller/normalizedthrust_constant", norm_thrust_const_, 0.1); // 1 / max acceleration
+
+  targetPos_ << 0.0, 0.0, 1.5; //Initial Position
+  targetVel_ << 0.0, 0.0, 0.0;
+  g_ << 0.0, 0.0, -9.8;
+  Kpos_ << -3.0, -5.0, -20.0;
+  Kvel_ << -2.0, -4.0, -5.0;
+  D_ << dx_, dy_, dz_;
+
 }
 geometricCtrl::~geometricCtrl() {
   //Destructor

@@ -40,11 +40,8 @@ class geometricCtrl
   private:
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
-    ros::Subscriber odomSub_;
     ros::Subscriber referenceSub_;
     ros::Subscriber flatreferenceSub_;
-
-    ros::Subscriber keybrdSub_;
     ros::Subscriber mavstateSub_;
     ros::Subscriber mavposeSub_, gzmavposeSub_;
     ros::Subscriber mavtwistSub_;
@@ -56,9 +53,7 @@ class geometricCtrl
     ros::Timer cmdloop_timer_, statusloop_timer_;
     ros::Time last_request_, reference_request_now_, reference_request_last_;
 
-    int num_rotors_;
     string mav_name_;
-    int max_motor_speed_;
     bool fail_detec_, ctrl_enable_;
     int ctrl_mode_;
     bool landing_commanded_;
@@ -68,6 +63,7 @@ class geometricCtrl
     double attctrl_tau_;
     double norm_thrust_const_;
     double max_fb_acc_;
+    double dx_, dy_, dz_;
 
     mavros_msgs::State current_state_;
     mavros_msgs::SetMode offb_set_mode_;
@@ -75,7 +71,7 @@ class geometricCtrl
     mavros_msgs::AttitudeTarget angularVelMsg_;
     geometry_msgs::PoseStamped referencePoseMsg_;
 
-    Eigen::Vector3d goalPos_, targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
+    Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
     Eigen::Vector3d mavPos_, mavVel_, mavRate_;
     double mavYaw_;
     Eigen::Vector3d a_des, a_fb, a_ref, a_rd, g_;
