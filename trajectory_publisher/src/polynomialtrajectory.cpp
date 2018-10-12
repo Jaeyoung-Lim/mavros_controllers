@@ -28,6 +28,14 @@ void polynomialtrajectory::setCoefficients(Eigen::VectorXd &x_coefficients, Eige
 
 }
 
+void polynomialtrajectory::generatePrimitives(Eigen::Vector3d pos){
+  //Generate primitives based on current state for smooth trajectory
+  c_x_(0) = pos(0);
+  c_y_(0) = pos(1);
+  c_z_(0) = pos(2);
+
+}
+
 void polynomialtrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel){
   //Generate primitives based on current state for smooth trajectory
   c_x_(0) = pos(0);

@@ -30,6 +30,7 @@ class trajectory {
   public:
     trajectory();
     ~trajectory();
+    virtual void generatePrimitives(Eigen::Vector3d pos) = 0;
     virtual void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel) = 0;
     virtual void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk) = 0;
     virtual void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk) = 0;
