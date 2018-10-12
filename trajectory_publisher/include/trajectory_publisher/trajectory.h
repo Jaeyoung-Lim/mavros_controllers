@@ -27,10 +27,8 @@ class trajectory {
     Eigen::Vector3d target_initpos;
     double traj_radius_, traj_omega_;
 
-
-
-public:
-    trajectory(int type);
+  public:
+    trajectory();
     ~trajectory();
     void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);
     void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk);

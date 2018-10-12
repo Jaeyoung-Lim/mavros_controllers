@@ -4,11 +4,11 @@
 
 #include "trajectory_publisher/trajectory.h"
 
-trajectory::trajectory(int type) :
-  N(0),
-  dt_(0.1),
-  T_(1.0),
-  type_(type) {
+trajectory::trajectory() {
+
+  N = 0;
+  dt_ = 0.1;
+  T_ = 1.0;
 
   traj_axis_ << 0.0, 0.0, 1.0;
   target_initpos << 0.0, 0.0, 0.0;
@@ -17,7 +17,7 @@ trajectory::trajectory(int type) :
   c_y_ << 0.0, 0.0, 0.0, 0.0;
   c_z_ << 0.0, 0.0, 0.0, 0.0;
 
-}
+};
 
 trajectory::~trajectory(){
 

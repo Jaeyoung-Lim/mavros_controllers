@@ -40,7 +40,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   inputs_.at(6) << 0.0, 0.0, -1.0;
 
   for(int i = 0;  i < num_primitives_; i++){
-    motionPrimitives_.emplace_back(TRAJ_POLYNOMIAL);
+    motionPrimitives_.emplace_back();
     primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
     inputs_.at(i) = inputs_.at(i) * max_jerk_;
   }
