@@ -55,7 +55,7 @@ private:
   int num_primitives_;
   int motion_selector_;
 
-  std::vector<trajectory> motionPrimitives_;
+  std::vector<std::shared_ptr<trajectory>> motionPrimitives_;
   std::vector<Eigen::Vector3d> inputs_;
 
 

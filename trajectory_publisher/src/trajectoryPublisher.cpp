@@ -61,20 +61,20 @@ void trajectoryPublisher::updateReference() {
   curr_time_ = ros::Time::now();
   trigger_time_ = (curr_time_ - start_time_).toSec();
 
-  p_targ = motionPrimitives_.at(motion_selector_).getPosition(trigger_time_);
-  v_targ = motionPrimitives_.at(motion_selector_).getVelocity(trigger_time_);
+  p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
+  v_targ = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
 
 }
 
 void trajectoryPublisher::initializePrimitives(){
-  for(int i = 0; i < num_primitives_; i++ ){
-    motionPrimitives_.at(i).generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
+  for(int i = 0; i < motionPrimitives_.size(); i++ ){
+    motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
   }
 }
 
 void trajectoryPublisher::updatePrimitives(){
-  for(int i = 0; i < num_primitives_ ; i++ ){
-    motionPrimitives_.at(i).generatePrimitives(p_mav_, v_mav_);
+  for(int i = 0; i < motionPrimitives_.size() ; i++ ){
+    motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_);
   }
 }
 
@@ -88,7 +88,7 @@ double trajectoryPublisher::getTrajectoryUpdateRate(){
 
 void trajectoryPublisher::pubrefTrajectory(int selector){
   //Publish current trajectory the publisher is publishing
-  refTrajectory_ = motionPrimitives_.at(selector).getSegment();
+  refTrajectory_ = motionPrimitives_.at(selector)->getSegment();
   refTrajectory_.header.stamp = ros::Time::now();
   refTrajectory_.header.frame_id = "map";
   trajectoryPub_.publish(refTrajectory_);
@@ -98,7 +98,7 @@ void trajectoryPublisher::pubrefTrajectory(int selector){
 void trajectoryPublisher::pubprimitiveTrajectory(){
 
   for(int i = 0; i < num_primitives_; i++ ){
-    primTrajectory_ = motionPrimitives_.at(i).getSegment();
+    primTrajectory_ = motionPrimitives_.at(i)->getSegment();
     primTrajectory_.header.stamp = ros::Time::now();
     primTrajectory_.header.frame_id = "map";
     primitivePub_.at(i).publish(primTrajectory_);
