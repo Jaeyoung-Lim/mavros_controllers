@@ -64,18 +64,12 @@ private:
 
 public:
   trajectoryPublisher(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
-  void setTrajectory(int ID);
-  void setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius, Eigen::Vector3d initpos);
-  void setTrajectoryTheta(double in);
-  double getTrajectoryOmega();
-  double getTrajectoryUpdateRate();
   void updateReference();
   void pubrefTrajectory(int selector);
   void pubprimitiveTrajectory();
   void pubrefState();
   void initializePrimitives(int type);
   void updatePrimitives();
-  Eigen::Vector3d getTargetPosition();
   void loopCallback(const ros::TimerEvent& event);
   void refCallback(const ros::TimerEvent& event);
   bool triggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
