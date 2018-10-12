@@ -19,6 +19,19 @@ shapetrajectory::~shapetrajectory(){
 
 };
 
+void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel){
+
+}
+
+void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk){
+
+}
+
+void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk){
+
+}
+
+
 Eigen::Vector3d shapetrajectory::getPosition(double time){
 
   Eigen::Vector3d position;

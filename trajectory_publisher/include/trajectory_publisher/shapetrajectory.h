@@ -26,6 +26,9 @@ private:
 public:
   shapetrajectory(int type);
   virtual ~shapetrajectory();
+  void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);
+  void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk);
+  void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk);
   void setTrajectory(int ID);
   void setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius, Eigen::Vector3d initpos);
   Eigen::VectorXd getCoefficients(int dim);
