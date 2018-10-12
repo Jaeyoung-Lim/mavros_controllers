@@ -28,21 +28,30 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
   nh_.param<double>("/trajectory_publisher/horizon", primitive_duration_, 1.0);
   nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
+  nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
 
-  inputs_.resize(num_primitives_);
-  inputs_.at(0) << 0.0, 0.0, 0.0; //Constant jerk inputs for minimim time trajectories
-  inputs_.at(1) << 1.0, 0.0, 0.0;
-  inputs_.at(2) << -1.0, 0.0, 0.0;
-  inputs_.at(3) << 0.0, 1.0, 0.0;
-  inputs_.at(4) << 0.0, -1.0, 0.0;
-  inputs_.at(5) << 0.0, 0.0, 1.0;
-  inputs_.at(6) << 0.0, 0.0, -1.0;
 
-  for(int i = 0;  i < num_primitives_; i++){
-    motionPrimitives_.emplace_back();
-    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
-    inputs_.at(i) = inputs_.at(i) * max_jerk_;
+  if(trajectory_type_ == 0){ //Polynomial trajectory
+    inputs_.resize(num_primitives_);
+    //TODO: Generalize around generating inputs in primitives
+    inputs_.at(0) << 0.0, 0.0, 0.0; //Constant jerk inputs for minimim time trajectories
+    inputs_.at(1) << 1.0, 0.0, 0.0;
+    inputs_.at(2) << -1.0, 0.0, 0.0;
+    inputs_.at(3) << 0.0, 1.0, 0.0;
+    inputs_.at(4) << 0.0, -1.0, 0.0;
+    inputs_.at(5) << 0.0, 0.0, 1.0;
+    inputs_.at(6) << 0.0, 0.0, -1.0;
+
+    for(int i = 0;  i < num_primitives_; i++){
+      motionPrimitives_.emplace_back(std::make_shared<polynomialtrajectory>());
+      primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
+      inputs_.at(i) = inputs_.at(i) * max_jerk_;
+    }
+  }else { //Shape trajectory
+    num_primitives_ = 1;
+    motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(trajectory_type_));
+    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset", 1));
   }
 
   initializePrimitives();

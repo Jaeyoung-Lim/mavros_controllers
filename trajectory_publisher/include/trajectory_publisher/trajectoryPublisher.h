@@ -19,6 +19,8 @@
 #include <mav_planning_msgs/PolynomialTrajectory4D.h>
 
 #include "trajectory_publisher/trajectory.h"
+#include "trajectory_publisher/polynomialtrajectory.h"
+#include "trajectory_publisher/shapetrajectory.h"
 
 using namespace std;
 using namespace Eigen;
@@ -42,8 +44,7 @@ private:
   nav_msgs::Path primTrajectory_;
   geometry_msgs::TwistStamped refState_;
 
-  int counter;
-  int mode_;
+  int trajectory_type_;
   Eigen::Vector3d p_targ, v_targ;
   Eigen::Vector3d p_mav_, v_mav_;
   double theta_ = 0.0;
