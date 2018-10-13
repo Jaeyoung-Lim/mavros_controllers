@@ -30,7 +30,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
   nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
-
+  nh_.param<double>("/trajectory_publisher/shape_radius", shape_radius_, 1.0);
 
   if(trajectory_type_ == 0){ //Polynomial trajectory
 
@@ -49,6 +49,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
       primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
       inputs_.at(i) = inputs_.at(i) * max_jerk_;
     }
+
   }else { //Shape trajectory
 
     num_primitives_ = 1;
@@ -80,19 +81,13 @@ void trajectoryPublisher::updateReference() {
 
 void trajectoryPublisher::initializePrimitives(){
   if(trajectory_type_ == 0){
-    for(int i = 0; i < motionPrimitives_.size(); i++ ){
-      motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
-    }
+    for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
   }
-  else {
-      motionPrimitives_.at(0)->generatePrimitives(shape_origin_, v_mav_, inputs_.at(0));
-  }
+  else motionPrimitives_.at(0)->generatePrimitives(shape_origin_, v_mav_, inputs_.at(0));
 }
 
 void trajectoryPublisher::updatePrimitives(){
-  for(int i = 0; i < motionPrimitives_.size() ; i++ ){
-    motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_);
-  }
+  for(int i = 0; i < motionPrimitives_.size() ; i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_);
 }
 
 Eigen::Vector3d trajectoryPublisher::getTargetPosition(){

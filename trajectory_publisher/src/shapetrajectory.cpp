@@ -11,7 +11,8 @@ shapetrajectory::shapetrajectory(int type) :
   type_(type) {
 
   traj_axis_ << 0.0, 0.0, 1.0;
-  target_initpos << 0.0, 0.0, 0.0;
+  traj_radial_ << 1.0, 0.0, 0.0;
+  traj_origin_ << 0.0, 0.0, 1.0;
 
 };
 
@@ -21,25 +22,25 @@ shapetrajectory::~shapetrajectory(){
 
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos){
 
-  target_initpos = pos;
+  traj_origin_ = pos;
 
 }
 
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel){
 
-  target_initpos = pos;
+  traj_origin_ = pos;
 
 }
 
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk){
 
-  target_initpos = pos;
+  traj_origin_ = pos;
 
 }
 
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk){
 
-  target_initpos = pos;
+  traj_origin_ = pos;
 
 }
 
@@ -53,19 +54,23 @@ Eigen::Vector3d shapetrajectory::getPosition(double time){
     case TRAJ_ZERO :
       position << 0.0, 0.0, 0.0;
       break;
+
     case TRAJ_CIRCLE :
-
       theta = traj_omega_* time;
-      position = std::cos(theta) * target_initpos
-                 + std::sin(theta) * traj_axis_.cross(target_initpos)
-                 + (1 - std::cos(theta)) * traj_axis_.dot(target_initpos) * traj_axis_;
+      position = std::cos(theta) * traj_radial_
+                 + std::sin(theta) * traj_axis_.cross(traj_radial_)
+                 + (1 - std::cos(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_
+                 + traj_origin_;
       break;
-    case TRAJ_LAMNISCATE : //Lemniscate of Genero
 
-      position = std::cos(theta) * target_initpos
-                 + std::sin(theta) * std::cos(theta) * traj_axis_.cross(target_initpos)
-                 + (1 - std::cos(theta)) * traj_axis_.dot(target_initpos) * traj_axis_;
+    case TRAJ_LAMNISCATE : //Lemniscate of Genero
+      theta = traj_omega_* time;
+      position = std::cos(theta) * traj_radial_
+                 + std::sin(theta) * std::cos(theta) * traj_axis_.cross(traj_radial_)
+                 + (1 - std::cos(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_
+                 + traj_origin_;
       break;
+
   }
   return position;
 }
@@ -102,39 +107,40 @@ nav_msgs::Path shapetrajectory::getSegment(){
 }
 
 void shapetrajectory::setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius,
-                               Eigen::Vector3d initpos) {
-  target_trajectoryID_ = ID;
+                               Eigen::Vector3d origin) {
+  type_ = ID;
   traj_axis_ = axis;
   traj_omega_ = omega;
   traj_radius_ = radius;
-  target_initpos = initpos;
+  traj_origin_ = origin;
+
 }
 
 void shapetrajectory::setTrajectory(int ID) {
-  double radius = 0, omega = 0;
-  Eigen::Vector3d axis, initpos;
+  double radius, omega;
+  Eigen::Vector3d axis,origin;
 
-  switch (ID) {//TODO: Move standard trajectories to the trajectory class
+  switch (ID) {
     case TRAJ_ZERO: //stationary trajectory
       omega = 0.0;
       radius = 0.0;
       axis << 0.0, 0.0, 1.0;
-      initpos << 0.0, 0.0, 1.0;
+      origin << 0.0, 0.0, 1.0;
       break;
     case TRAJ_CIRCLE: //circular trajectory
       omega = 1.0;
       radius = 2.0;
       axis << 0.0, 0.0, 1.0;
-      initpos << 0.0, radius, 0.0;
+      origin << 0.0, radius, 0.0;
       break;
     case TRAJ_LAMNISCATE: //Lemniscate of Genoro
       omega = 1.0;
       radius = 2.0;
       axis << 0.0, 0.0, 1.0;
-      initpos << 0.0, radius, 0.0;
+      origin << 0.0, radius, 0.0;
       break;
   }
-  setTrajectory(ID, omega, axis, radius, initpos);
+  setTrajectory(ID, omega, axis, radius, origin);
 }
 
 geometry_msgs::PoseStamped shapetrajectory::vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation){

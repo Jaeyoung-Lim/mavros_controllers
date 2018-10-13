@@ -11,7 +11,7 @@ trajectory::trajectory() {
   T_ = 1.0;
 
   traj_axis_ << 0.0, 0.0, 1.0;
-  target_initpos << 0.0, 0.0, 0.0;
+  traj_origin_ << 0.0, 0.0, 0.0;
 
   c_x_ << 0.0, 0.0, 0.0, 0.0;
   c_y_ << 0.0, 0.0, 0.0, 0.0;

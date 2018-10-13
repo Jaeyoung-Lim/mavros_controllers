@@ -48,6 +48,7 @@ private:
   Eigen::Vector3d p_targ, v_targ;
   Eigen::Vector3d p_mav_, v_mav_;
   Eigen::Vector3d shape_origin_;
+  double shape_radius_ = 0;
   double theta_ = 0.0;
   double controlUpdate_dt_;
   double primitive_duration_;

@@ -18,9 +18,9 @@ private:
   int N;
   double dt_;
   double T_;
-  int target_trajectoryID_;
   Eigen::Vector3d traj_axis_;
-  Eigen::Vector3d target_initpos;
+  Eigen::Vector3d traj_origin_;
+  Eigen::Vector3d traj_radial_;
   double traj_radius_, traj_omega_;
 
 public:
@@ -31,8 +31,7 @@ public:
   void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk);
   void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk);
   void setTrajectory(int ID);
-  void setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius, Eigen::Vector3d initpos);
-  Eigen::VectorXd getCoefficients(int dim);
+  void setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius, Eigen::Vector3d origin);
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
   nav_msgs::Path getSegment();

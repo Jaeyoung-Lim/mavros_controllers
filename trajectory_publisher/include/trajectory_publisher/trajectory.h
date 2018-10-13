@@ -24,7 +24,7 @@ class trajectory {
     int target_trajectoryID_;
     Eigen::Vector4d c_x_, c_y_, c_z_; //Coefficients for polynomial representation
     Eigen::Vector3d traj_axis_;
-    Eigen::Vector3d target_initpos;
+    Eigen::Vector3d traj_origin_;
     double traj_radius_, traj_omega_;
 
   public:
