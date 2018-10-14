@@ -19,6 +19,8 @@
 #include <mav_planning_msgs/PolynomialTrajectory4D.h>
 
 #include "trajectory_publisher/trajectory.h"
+#include "trajectory_publisher/polynomialtrajectory.h"
+#include "trajectory_publisher/shapetrajectory.h"
 
 using namespace std;
 using namespace Eigen;
@@ -42,10 +44,11 @@ private:
   nav_msgs::Path primTrajectory_;
   geometry_msgs::TwistStamped refState_;
 
-  int counter;
-  int mode_;
+  int trajectory_type_;
   Eigen::Vector3d p_targ, v_targ;
   Eigen::Vector3d p_mav_, v_mav_;
+  Eigen::Vector3d shape_origin_;
+  double shape_radius_ = 0;
   double theta_ = 0.0;
   double controlUpdate_dt_;
   double primitive_duration_;
@@ -55,7 +58,7 @@ private:
   int num_primitives_;
   int motion_selector_;
 
-  std::vector<trajectory> motionPrimitives_;
+  std::vector<std::shared_ptr<trajectory>> motionPrimitives_;
   std::vector<Eigen::Vector3d> inputs_;
 
 
@@ -70,7 +73,7 @@ public:
   void pubrefTrajectory(int selector);
   void pubprimitiveTrajectory();
   void pubrefState();
-  void initializePrimitives();
+  void initializePrimitives(int type);
   void updatePrimitives();
   Eigen::Vector3d getTargetPosition();
   void loopCallback(const ros::TimerEvent& event);
