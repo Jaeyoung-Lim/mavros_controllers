@@ -69,10 +69,6 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
 
 }
 
-void trajectoryPublisher::setTrajectoryTheta(double in) {
-  theta_ = in;
-}
-
 void trajectoryPublisher::updateReference() {
   curr_time_ = ros::Time::now();
   trigger_time_ = (curr_time_ - start_time_).toSec();
@@ -95,14 +91,6 @@ void trajectoryPublisher::initializePrimitives(int type){
 
 void trajectoryPublisher::updatePrimitives(){
   for(int i = 0; i < motionPrimitives_.size() ; i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_);
-}
-
-Eigen::Vector3d trajectoryPublisher::getTargetPosition(){
-  return p_targ;
-}
-
-double trajectoryPublisher::getTrajectoryUpdateRate(){
-  return controlUpdate_dt_;
 }
 
 void trajectoryPublisher::pubrefTrajectory(int selector){
