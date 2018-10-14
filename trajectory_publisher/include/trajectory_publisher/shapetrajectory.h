@@ -34,7 +34,6 @@ public:
   void setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius, Eigen::Vector3d origin);
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
-  nav_msgs::Path getSegment();
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation);
 
 };

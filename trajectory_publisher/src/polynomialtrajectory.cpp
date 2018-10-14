@@ -120,25 +120,6 @@ Eigen::Vector3d polynomialtrajectory::getVelocity(double time){
   return velocity;
 }
 
-nav_msgs::Path polynomialtrajectory::getSegment(){
-
-  Eigen::Vector3d targetPosition;
-  Eigen::Vector4d targetOrientation;
-  nav_msgs::Path segment;
-
-  int N = T_/dt_; //Resolution of the trajectory to be published
-
-  targetOrientation << 1.0, 0.0, 0.0, 0.0;
-  geometry_msgs::PoseStamped targetPoseStamped;
-
-  for(int i = 0 ; i < N ; i++){
-    targetPosition = this->getPosition(i*dt_);
-    targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
-    segment.poses.push_back(targetPoseStamped);
-  }
-  return segment;
-}
-
 geometry_msgs::PoseStamped polynomialtrajectory::vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation){
   geometry_msgs::PoseStamped encode_msg;
   encode_msg.header.stamp = ros::Time::now();

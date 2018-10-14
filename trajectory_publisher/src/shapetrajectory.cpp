@@ -10,6 +10,7 @@ shapetrajectory::shapetrajectory(int type) :
   T_(1.0),
   type_(type) {
 
+  traj_omega_ = 1.0;
   traj_axis_ << 0.0, 0.0, 1.0;
   traj_radial_ << 1.0, 0.0, 0.0;
   traj_origin_ << 0.0, 0.0, 1.0;
@@ -85,25 +86,6 @@ Eigen::Vector3d shapetrajectory::getVelocity(double time){
   }
   return velocity;
 
-}
-
-nav_msgs::Path shapetrajectory::getSegment(){
-
-  Eigen::Vector3d targetPosition;
-  Eigen::Vector4d targetOrientation;
-  nav_msgs::Path segment;
-
-  int N = T_/dt_; //Resolution of the trajectory to be published
-
-  targetOrientation << 1.0, 0.0, 0.0, 0.0;
-  geometry_msgs::PoseStamped targetPoseStamped;
-
-  for(int i = 0 ; i < N ; i++){
-    targetPosition = this->getPosition(i*dt_);
-    targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
-    segment.poses.push_back(targetPoseStamped);
-  }
-  return segment;
 }
 
 void shapetrajectory::setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius,
