@@ -15,7 +15,6 @@ shapetrajectory::shapetrajectory(int type) :
   traj_axis_ << 0.0, 0.0, 1.0;
   traj_radial_ << 1.0, 0.0, 0.0;
   traj_origin_ << 0.0, 0.0, 1.0;
-  std::cout << "T: " << T_ <<std::endl;
 
 
 };
@@ -24,13 +23,12 @@ shapetrajectory::~shapetrajectory(){
 
 };
 
-void shapetrajectory::initPrimitives(Eigen::Vector3d pos){
+void shapetrajectory::initPrimitives(Eigen::Vector3d pos, Eigen::Vector3d axis, double omega){
   //Generate primitives based on current state for smooth trajectory
   traj_origin_ = pos;
-  traj_omega_ = 1.0;
+  traj_omega_ = omega;
   T_ = 2*3.14 / traj_omega_;
-  std::cout << "T: " << T_ <<std::endl;
-  traj_axis_ << 0.0, 0.0, 1.0;
+  traj_axis_ = axis;
   traj_radial_ << 2.0, 0.0, 0.0;
 
 }

@@ -28,7 +28,7 @@ void polynomialtrajectory::setCoefficients(Eigen::VectorXd &x_coefficients, Eige
 
 }
 
-void polynomialtrajectory::initPrimitives(Eigen::Vector3d pos){
+void polynomialtrajectory::initPrimitives(Eigen::Vector3d pos, Eigen::Vector3d axis, double omega){
   //Generate primitives based on current state for smooth trajectory
   c_x_(0) = pos(0);
   c_y_(0) = pos(1);
