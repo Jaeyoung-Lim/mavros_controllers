@@ -78,6 +78,7 @@ class geometricCtrl
     Eigen::Vector4d mavAtt_, q_ref, q_des;
     Eigen::Vector4d cmdBodyRate_; //{wx, wy, wz, Thrust}
     Eigen::Vector3d Kpos_, Kvel_, D_;
+    double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
 
     void pubMotorCommands();
     void pubRateCommands();
