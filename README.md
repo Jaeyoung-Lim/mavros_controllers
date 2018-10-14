@@ -12,13 +12,26 @@ The repository contains controllers for controlling MAVs using the mavros packag
 [![Hovering done](https://img.youtube.com/vi/FRaPGjX9m-c/0.jpg)](https://youtu.be/FRaPGjX9m-c "Hovering done")
 
 
-## Topics
+## Nodes
 ### trajectory_controller
+
 The geometric controller publishes and subscribes the following topics.
+- Parameters
+    - /geometric_controller/mavname (default: "iris")
+    - /geometric_controller/ctrl_mode (default: MODE_BODYRATE)
+    - /geometric_controller/enable_sim (default: true)
+    - /geometric_controller/enable_gazebo_state (default: false)
+    - /geometric_controller/max_acc (default: 7.0)
+    - /geometric_controller/yaw_heading (default: 0.0)
+    - /geometric_controller/drag_dx (default: 0.0)
+    - /geometric_controller/drag_dy (default: 0.0)
+    - /geometric_controller/drag_dz (default: 0.0)
+    - /geometric_controller/attctrl_constant (default: 0.2)
+    - /geometric_controller/normalizedthrust_constant (default: 0.1)
 
 - Published Topics
-	- "command/bodyrate_command" ( [mavros_msgs/AttitudeTarget](http://docs.ros.org/api/mavros_msgs/html/msg/AttitudeTarget.html) )
-	- "reference/pose" ( [geometry_msgs/PoseStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/PoseStamped.html) )
+	- command/bodyrate_command ( [mavros_msgs/AttitudeTarget](http://docs.ros.org/api/mavros_msgs/html/msg/AttitudeTarget.html) )
+	- reference/pose ( [geometry_msgs/PoseStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/PoseStamped.html) )
 
 - Subscribed Topics
 	- reference/setpoint ( [geometry_msgs/TwistStamped](http://docs.ros.org/api/geometry_msgs/html/msg/TwistStamped.html) )
@@ -28,9 +41,27 @@ The geometric controller publishes and subscribes the following topics.
 	- /mavros/local_position/velocity( [geometry_msgs/TwistStamped](http://docs.ros.org/api/geometry_msgs/html/msg/TwistStamped.html) )
 
 ### trajectory_publisher
+
+Trajectory publisher publishes continous trajectories to the trajectory_controller.
+- Parameters
+    - /trajectory_publisher/initpos_x (default: 0.0)
+    - /trajectory_publisher/initpos_y (default: 0.0)
+    - /trajectory_publisher/initpos_z (default: 1.0)
+    - /trajectory_publisher/updaterate (default: 0.01)
+    - /trajectory_publisher/horizon (default: 1.0)
+    - /trajectory_publisher/maxjerk (default: 10.0)
+    - /trajectory_publisher/trajectory_type (default: 0)
+    - /trajectory_publisher/number_of_primitives (default: 7)
+    - /trajectory_publisher/shape_radius (default: 1.0)
+
 - Published Topics
 	- reference/trajectory ( [nav_msgs/Path](http://docs.ros.org/kinetic/api/nav_msgs/html/msg/Path.html) )
 	- reference/setpoint ( [geometry_msgs/TwistStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/Twist.html) )
+
+- Subscribed Topics
+    - /trajectory_publisher/motionselector ([std_msgs/int32](http://docs.ros.org/api/std_msgs/html/msg/Int32.html));
+    - /mavros/local_position/pose ( [geometry_msgs/PoseStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/PoseStamped.html) )
+    - /mavros/local_position/velocity( [geometry_msgs/TwistStamped](http://docs.ros.org/api/geometry_msgs/html/msg/TwistStamped.html) )
 
 ## References
 [1] Lee, Taeyoung, Melvin Leoky, and N. Harris McClamroch. "Geometric tracking control of a quadrotor UAV on SE (3)." Decision and Control (CDC), 2010 49th IEEE Conference on. IEEE, 2010.
