@@ -5,15 +5,14 @@ Controllers for controlling MAVs using the [mavros](https://github.com/mavlink/m
 
 ## Overview
 The repository contains controllers for controlling MAVs using the mavros package. The following packages are included in the repo
-- trajectory_controller: Trajectory tracking controller based on geometric control
+- geometric_controller: Trajectory tracking controller based on geometric control
 - controller_msgs: custom message definitions
 - trajectory_publisher: Node publishing setpoints as states from motion primitives / trajectories for the controller to follow.
 
 [![Hovering done](https://img.youtube.com/vi/FRaPGjX9m-c/0.jpg)](https://youtu.be/FRaPGjX9m-c "Hovering done")
 
-
 ## Nodes
-### trajectory_controller
+### geometric_controller
 
 The geometric controller publishes and subscribes the following topics.
 - Parameters
