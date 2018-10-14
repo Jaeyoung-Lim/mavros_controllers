@@ -37,14 +37,20 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<double>("/geometric_controller/drag_dx", dx_, 0.0);
   nh_.param<double>("/geometric_controller/drag_dy", dy_, 0.0);
   nh_.param<double>("/geometric_controller/drag_dz", dz_, 0.0);
-  nh_.param<double>("/geometric_controller/attctrl_constant", attctrl_tau_, 0.2);
-  nh_.param<double>("/geometric_controller/normalizedthrust_constant", norm_thrust_const_, 0.1); // 1 / max acceleration
+  nh_.param<double>("/geometric_controller/attctrl_constant", attctrl_tau_, 0.1);
+  nh_.param<double>("/geometric_controller/normalizedthrust_constant", norm_thrust_const_, 0.05); // 1 / max acceleration
+  nh_.param<double>("/geometric_controller/Kp_x", Kpos_x_, 8.0);
+  nh_.param<double>("/geometric_controller/Kp_y", Kpos_y_, 8.0);
+  nh_.param<double>("/geometric_controller/Kp_z", Kpos_z_, 30.0);
+  nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 3.7);
+  nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 3.7);
+  nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 10.0);
 
   targetPos_ << 0.0, 0.0, 1.5; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
   g_ << 0.0, 0.0, -9.8;
-  Kpos_ << -3.0, -5.0, -20.0;
-  Kvel_ << -2.0, -4.0, -5.0;
+  Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
+  Kvel_ << -Kvel_x_, -Kvel_z_, -Kvel_z_;
   D_ << dx_, dy_, dz_;
 
 }
