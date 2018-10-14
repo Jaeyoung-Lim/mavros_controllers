@@ -16,6 +16,11 @@
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
   </node>
 
+  <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
+        <param name="trajectory_type" value="1" />
+        <param name="shape_omega" value="1" />
+  </node>
+
 
   <node name="mavros" pkg="mavros" type="mavros_node" output="screen">
       <param name="fcu_url" value="$(arg fcu_url)" />
