@@ -28,14 +28,16 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
   nh_.param<double>("/trajectory_publisher/horizon", primitive_duration_, 1.0);
   nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
-  nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
+  nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 1);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
   nh_.param<double>("/trajectory_publisher/shape_radius", shape_radius_, 1.0);
 
-  if(trajectory_type_ == 0){ //Polynomial trajectory
+  if(trajectory_type_ !=0) num_primitives_ = 1;
 
-    inputs_.resize(num_primitives_);
-    //TODO: Generalize around generating inputs in primitives
+  inputs_.resize(num_primitives_);
+
+  if(num_primitives_ == 7){
+
     inputs_.at(0) << 0.0, 0.0, 0.0; //Constant jerk inputs for minimim time trajectories
     inputs_.at(1) << 1.0, 0.0, 0.0;
     inputs_.at(2) << -1.0, 0.0, 0.0;
@@ -43,26 +45,19 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
     inputs_.at(4) << 0.0, -1.0, 0.0;
     inputs_.at(5) << 0.0, 0.0, 1.0;
     inputs_.at(6) << 0.0, 0.0, -1.0;
+  }
 
-    for(int i = 0;  i < num_primitives_; i++){
-      motionPrimitives_.emplace_back(std::make_shared<polynomialtrajectory>());
-      primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
-      inputs_.at(i) = inputs_.at(i) * max_jerk_;
-    }
-
-  }else { //Shape trajectory
-
-    num_primitives_ = 1;
-    shape_origin_ << init_pos_x_, init_pos_y_, init_pos_z_;
-    motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(trajectory_type_));
-    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset", 1));
+  for(int i = 0;  i < num_primitives_; i++){
+    motionPrimitives_.emplace_back(std::make_shared<polynomialtrajectory>());
+    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
+    inputs_.at(i) = inputs_.at(i) * max_jerk_;
   }
 
   initializePrimitives();
 
   p_targ << init_pos_x_, init_pos_y_, init_pos_z_;
   v_targ << 0.0, 0.0, 0.0;
-  motion_selector_ = 1;
+  motion_selector_ = 0;
 
 }
 
@@ -80,10 +75,7 @@ void trajectoryPublisher::updateReference() {
 }
 
 void trajectoryPublisher::initializePrimitives(){
-  if(trajectory_type_ == 0){
-    for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
-  }
-  else motionPrimitives_.at(0)->generatePrimitives(shape_origin_, v_mav_, inputs_.at(0));
+  for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
 }
 
 void trajectoryPublisher::updatePrimitives(){
@@ -109,7 +101,7 @@ void trajectoryPublisher::pubrefTrajectory(int selector){
 
 void trajectoryPublisher::pubprimitiveTrajectory(){
 
-  for(int i = 0; i < num_primitives_; i++ ){
+  for(int i = 0; i < motionPrimitives_.size(); i++ ){
     primTrajectory_ = motionPrimitives_.at(i)->getSegment();
     primTrajectory_.header.stamp = ros::Time::now();
     primTrajectory_.header.frame_id = "map";

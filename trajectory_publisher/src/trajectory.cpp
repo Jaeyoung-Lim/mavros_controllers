@@ -34,13 +34,11 @@ nav_msgs::Path trajectory::getSegment(){
   Eigen::Vector4d targetOrientation;
   nav_msgs::Path segment;
 
-  int N = T_/dt_; //Resolution of the trajectory to be published
-
   targetOrientation << 1.0, 0.0, 0.0, 0.0;
   geometry_msgs::PoseStamped targetPoseStamped;
 
-  for(int i = 0 ; i < N ; i++){
-    targetPosition = this->getPosition(i*dt_);
+  for(double t = 0 ; t < this->getDuration() ; t+=this->getsamplingTime()){
+    targetPosition = this->getPosition(t);
     targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
     segment.poses.push_back(targetPoseStamped);
   }
