@@ -138,7 +138,6 @@ nav_msgs::Path polynomialtrajectory::getSegment(){
   geometry_msgs::PoseStamped targetPoseStamped;
 
   for(double t = 0 ; t < this->getDuration() ; t+=this->getsamplingTime()){
-//    std::cout << t << std::endl;
     targetPosition = this->getPosition(t);
     targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
     segment.poses.push_back(targetPoseStamped);

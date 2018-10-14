@@ -28,24 +28,24 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
   nh_.param<double>("/trajectory_publisher/horizon", primitive_duration_, 1.0);
   nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
-  nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 1);
+  nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
   nh_.param<double>("/trajectory_publisher/shape_radius", shape_radius_, 1.0);
 
   inputs_.resize(num_primitives_);
 
-  if(num_primitives_ == 7){
-
-    inputs_.at(0) << 0.0, 0.0, 0.0; //Constant jerk inputs for minimim time trajectories
-    inputs_.at(1) << 1.0, 0.0, 0.0;
-    inputs_.at(2) << -1.0, 0.0, 0.0;
-    inputs_.at(3) << 0.0, 1.0, 0.0;
-    inputs_.at(4) << 0.0, -1.0, 0.0;
-    inputs_.at(5) << 0.0, 0.0, 1.0;
-    inputs_.at(6) << 0.0, 0.0, -1.0;
-  }
-
   if(trajectory_type_ == 0){//Polynomial Trajectory
+
+    if(num_primitives_ == 7){
+
+      inputs_.at(0) << 0.0, 0.0, 0.0; //Constant jerk inputs for minimim time trajectories
+      inputs_.at(1) << 1.0, 0.0, 0.0;
+      inputs_.at(2) << -1.0, 0.0, 0.0;
+      inputs_.at(3) << 0.0, 1.0, 0.0;
+      inputs_.at(4) << 0.0, -1.0, 0.0;
+      inputs_.at(5) << 0.0, 0.0, 1.0;
+      inputs_.at(6) << 0.0, 0.0, -1.0;
+    }
 
     for(int i = 0;  i < num_primitives_; i++){
       motionPrimitives_.emplace_back(std::make_shared<polynomialtrajectory>());
@@ -84,7 +84,7 @@ void trajectoryPublisher::updateReference() {
 
 void trajectoryPublisher::initializePrimitives(int type){
   if(type == 0){
-    for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->initPrimitives(p_mav_);
+    for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
   }
   else {
     for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->initPrimitives(shape_origin_);
