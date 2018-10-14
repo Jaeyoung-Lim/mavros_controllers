@@ -18,6 +18,7 @@ private:
 public:
   polynomialtrajectory();
   virtual ~polynomialtrajectory();
+  void initPrimitives(Eigen::Vector3d pos);
   void generatePrimitives(Eigen::Vector3d pos);
   void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);
   void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk);
@@ -26,6 +27,9 @@ public:
   Eigen::VectorXd getCoefficients(int dim);
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
+  double getsamplingTime(){return dt_;};
+  double getDuration(){ return T_;};
+  nav_msgs::Path getSegment();
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation);
 
 };

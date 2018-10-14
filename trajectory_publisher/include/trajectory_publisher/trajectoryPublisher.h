@@ -73,7 +73,7 @@ public:
   void pubrefTrajectory(int selector);
   void pubprimitiveTrajectory();
   void pubrefState();
-  void initializePrimitives();
+  void initializePrimitives(int type);
   void updatePrimitives();
   Eigen::Vector3d getTargetPosition();
   void loopCallback(const ros::TimerEvent& event);

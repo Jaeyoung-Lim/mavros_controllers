@@ -28,6 +28,14 @@ void polynomialtrajectory::setCoefficients(Eigen::VectorXd &x_coefficients, Eige
 
 }
 
+void polynomialtrajectory::initPrimitives(Eigen::Vector3d pos){
+  //Generate primitives based on current state for smooth trajectory
+  c_x_(0) = pos(0);
+  c_y_(0) = pos(1);
+  c_z_(0) = pos(2);
+
+}
+
 void polynomialtrajectory::generatePrimitives(Eigen::Vector3d pos){
   //Generate primitives based on current state for smooth trajectory
   c_x_(0) = pos(0);
@@ -118,6 +126,24 @@ Eigen::Vector3d polynomialtrajectory::getVelocity(double time){
           c_z_(1) + c_z_(2) * time * 2 + c_z_(3) * pow(time, 2) * 3;
 
   return velocity;
+}
+
+nav_msgs::Path polynomialtrajectory::getSegment(){
+
+  Eigen::Vector3d targetPosition;
+  Eigen::Vector4d targetOrientation;
+  nav_msgs::Path segment;
+
+  targetOrientation << 1.0, 0.0, 0.0, 0.0;
+  geometry_msgs::PoseStamped targetPoseStamped;
+
+  for(double t = 0 ; t < this->getDuration() ; t+=this->getsamplingTime()){
+//    std::cout << t << std::endl;
+    targetPosition = this->getPosition(t);
+    targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
+    segment.poses.push_back(targetPoseStamped);
+  }
+  return segment;
 }
 
 geometry_msgs::PoseStamped polynomialtrajectory::vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation){

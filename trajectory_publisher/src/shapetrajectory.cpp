@@ -5,15 +5,18 @@
 #include "trajectory_publisher/shapetrajectory.h"
 
 shapetrajectory::shapetrajectory(int type) :
+  trajectory(),
   N(0),
   dt_(0.1),
-  T_(1.0),
+  T_(10.0),
   type_(type) {
 
-  traj_omega_ = 1.0;
+  traj_omega_ = 2.0;
   traj_axis_ << 0.0, 0.0, 1.0;
   traj_radial_ << 1.0, 0.0, 0.0;
   traj_origin_ << 0.0, 0.0, 1.0;
+  std::cout << "T: " << T_ <<std::endl;
+
 
 };
 
@@ -21,27 +24,30 @@ shapetrajectory::~shapetrajectory(){
 
 };
 
-void shapetrajectory::generatePrimitives(Eigen::Vector3d pos){
-
+void shapetrajectory::initPrimitives(Eigen::Vector3d pos){
+  //Generate primitives based on current state for smooth trajectory
   traj_origin_ = pos;
+  traj_omega_ = 1.0;
+  T_ = 2*3.14 / traj_omega_;
+  std::cout << "T: " << T_ <<std::endl;
+  traj_axis_ << 0.0, 0.0, 1.0;
+  traj_radial_ << 2.0, 0.0, 0.0;
+
+}
+
+void shapetrajectory::generatePrimitives(Eigen::Vector3d pos){
 
 }
 
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel){
 
-  traj_origin_ = pos;
-
 }
 
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d jerk){
 
-  traj_origin_ = pos;
-
 }
 
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk){
-
-  traj_origin_ = pos;
 
 }
 
@@ -88,41 +94,21 @@ Eigen::Vector3d shapetrajectory::getVelocity(double time){
 
 }
 
-void shapetrajectory::setTrajectory(int ID, double omega, Eigen::Vector3d axis, double radius,
-                               Eigen::Vector3d origin) {
-  type_ = ID;
-  traj_axis_ = axis;
-  traj_omega_ = omega;
-  traj_radius_ = radius;
-  traj_origin_ = origin;
+nav_msgs::Path shapetrajectory::getSegment(){
 
-}
+  Eigen::Vector3d targetPosition;
+  Eigen::Vector4d targetOrientation;
+  nav_msgs::Path segment;
 
-void shapetrajectory::setTrajectory(int ID) {
-  double radius, omega;
-  Eigen::Vector3d axis,origin;
+  targetOrientation << 1.0, 0.0, 0.0, 0.0;
+  geometry_msgs::PoseStamped targetPoseStamped;
 
-  switch (ID) {
-    case TRAJ_ZERO: //stationary trajectory
-      omega = 0.0;
-      radius = 0.0;
-      axis << 0.0, 0.0, 1.0;
-      origin << 0.0, 0.0, 1.0;
-      break;
-    case TRAJ_CIRCLE: //circular trajectory
-      omega = 1.0;
-      radius = 2.0;
-      axis << 0.0, 0.0, 1.0;
-      origin << 0.0, radius, 0.0;
-      break;
-    case TRAJ_LAMNISCATE: //Lemniscate of Genoro
-      omega = 1.0;
-      radius = 2.0;
-      axis << 0.0, 0.0, 1.0;
-      origin << 0.0, radius, 0.0;
-      break;
+  for(double t = 0 ; t < this->getDuration() ; t+=this->getsamplingTime()){
+    targetPosition = this->getPosition(t);
+    targetPoseStamped = vector3d2PoseStampedMsg(targetPosition, targetOrientation);
+    segment.poses.push_back(targetPoseStamped);
   }
-  setTrajectory(ID, omega, axis, radius, origin);
+  return segment;
 }
 
 geometry_msgs::PoseStamped shapetrajectory::vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation){
@@ -136,6 +122,5 @@ geometry_msgs::PoseStamped shapetrajectory::vector3d2PoseStampedMsg(Eigen::Vecto
   encode_msg.pose.position.x = position(0);
   encode_msg.pose.position.y = position(1);
   encode_msg.pose.position.z = position(2);
-
   return encode_msg;
 }
