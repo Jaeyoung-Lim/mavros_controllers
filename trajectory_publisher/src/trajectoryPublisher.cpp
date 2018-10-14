@@ -30,7 +30,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
   nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
-  nh_.param<double>("/trajectory_publisher/shape_radius", shape_radius_, 1.0);
+  nh_.param<double>("/trajectory_publisher/shape_omega", shape_omega_, 1.5);
 
 
   inputs_.resize(num_primitives_);
@@ -64,6 +64,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   p_targ << init_pos_x_, init_pos_y_, init_pos_z_;
   v_targ << 0.0, 0.0, 0.0;
   shape_origin_ << init_pos_x_, init_pos_y_, init_pos_z_;
+  shape_axis_ << 0.0, 0.0, 1.0;
   motion_selector_ = 0;
 
   initializePrimitives(trajectory_type_);
@@ -84,7 +85,7 @@ void trajectoryPublisher::initializePrimitives(int type){
     for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
   }
   else {
-    for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->initPrimitives(shape_origin_);
+    for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->initPrimitives(shape_origin_, shape_axis_, shape_omega_);
     //TODO: Pass in parameters for primitive trajectories
     
   }

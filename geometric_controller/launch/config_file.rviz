@@ -10,7 +10,6 @@ Panels:
         - /Pose1
         - /Pose2
         - /Path1
-        - /Path1/Status1
       Splitter Ratio: 0.5
     Tree Height: 775
   - Class: rviz/Selection
@@ -69,8 +68,8 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.100000001
+      Axes Length: 0.5
+      Axes Radius: 0.0500000007
       Class: rviz/Pose
       Color: 0; 255; 0
       Enabled: true
@@ -80,7 +79,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.0500000007
       Shape: Axes
-      Topic: /iris/reference/pose
+      Topic: /reference/pose
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -99,7 +98,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Pose Color: 255; 85; 255
-      Pose Style: Axes
+      Pose Style: None
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001

@@ -17,6 +17,8 @@
   </node>
 
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
+        <param name="trajectory_type" value="1" />
+        <param name="shape_omega" value="1" />
   </node>
 
 
