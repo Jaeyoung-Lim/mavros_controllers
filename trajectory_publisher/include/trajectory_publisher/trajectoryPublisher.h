@@ -17,7 +17,7 @@
 #include <std_srvs/SetBool.h>
 #include <nav_msgs/Path.h>
 #include <mav_planning_msgs/PolynomialTrajectory4D.h>
-
+#include "controller_msgs/FlatTarget.h"
 #include "trajectory_publisher/trajectory.h"
 #include "trajectory_publisher/polynomialtrajectory.h"
 #include "trajectory_publisher/shapetrajectory.h"
@@ -31,6 +31,7 @@ private:
   ros::NodeHandle nh_private_;
   ros::Publisher trajectoryPub_;
   ros::Publisher referencePub_;
+  ros::Publisher flatreferencePub_;
   std::vector<ros::Publisher> primitivePub_;
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
@@ -43,9 +44,10 @@ private:
   nav_msgs::Path refTrajectory_;
   nav_msgs::Path primTrajectory_;
   geometry_msgs::TwistStamped refState_;
+  controller_msgs::FlatTarget flatrefState_;
 
   int trajectory_type_;
-  Eigen::Vector3d p_targ, v_targ;
+  Eigen::Vector3d p_targ, v_targ, a_targ;
   Eigen::Vector3d p_mav_, v_mav_;
   Eigen::Vector3d shape_origin_, shape_axis_;
   double shape_omega_ = 0;
@@ -55,6 +57,7 @@ private:
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
   double max_jerk_;
+  bool use_flatref_;
   int num_primitives_;
   int motion_selector_;
 
@@ -68,6 +71,7 @@ public:
   void pubrefTrajectory(int selector);
   void pubprimitiveTrajectory();
   void pubrefState();
+  void pubflatrefState();
   void initializePrimitives(int type);
   void updatePrimitives();
   void loopCallback(const ros::TimerEvent& event);
