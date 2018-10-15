@@ -27,6 +27,7 @@ public:
   Eigen::VectorXd getCoefficients(int dim);
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
+  Eigen::Vector3d getAcceleration(double time);
   double getsamplingTime(){return dt_;};
   double getDuration(){ return T_;};
   nav_msgs::Path getSegment();

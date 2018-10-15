@@ -128,6 +128,16 @@ Eigen::Vector3d polynomialtrajectory::getVelocity(double time){
   return velocity;
 }
 
+Eigen::Vector3d polynomialtrajectory::getAcceleration(double time){
+
+  Eigen::Vector3d acceleration;
+  acceleration << c_x_(2) * 2 + c_x_(3) * time * 6,
+          c_y_(2) * 2 + c_y_(3) * time * 6,
+          c_z_(2) * 2 + c_z_(3) * time * 6;
+
+  return acceleration;
+}
+
 nav_msgs::Path polynomialtrajectory::getSegment(){
 
   Eigen::Vector3d targetPosition;
