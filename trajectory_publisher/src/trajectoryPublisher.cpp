@@ -134,7 +134,7 @@ void trajectoryPublisher::pubflatrefState(){
 
   flatrefState_.header.stamp = ros::Time::now();
   flatrefState_.header.frame_id = "map";
-  flatrefState_.type_mask = 1;
+  flatrefState_.type_mask = 2;
   flatrefState_.position.x = p_targ(0);
   flatrefState_.position.y = p_targ(1);
   flatrefState_.position.z = p_targ(2);
