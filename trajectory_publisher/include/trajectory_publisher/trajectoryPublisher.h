@@ -57,7 +57,7 @@ private:
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
   double max_jerk_;
-  bool use_flatref_;
+  int flatref_type_;
   int num_primitives_;
   int motion_selector_;
 

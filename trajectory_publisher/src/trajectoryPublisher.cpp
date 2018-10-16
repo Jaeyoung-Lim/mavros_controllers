@@ -32,7 +32,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/shape_omega", shape_omega_, 1.5);
   nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
-  nh_.param<bool>("/trajectory_publisher/enable_flatreference", use_flatref_, true);
+  nh_.param<int>("/trajectory_publisher/reference_type", flatref_type_, 2);
 
 
   inputs_.resize(num_primitives_);
@@ -79,7 +79,7 @@ void trajectoryPublisher::updateReference() {
 
   p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
   v_targ = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
-  if(use_flatref_) a_targ = motionPrimitives_.at(motion_selector_)->getAcceleration(trigger_time_);
+  if(flatref_type_!=0) a_targ = motionPrimitives_.at(motion_selector_)->getAcceleration(trigger_time_);
 
 }
 
@@ -134,7 +134,7 @@ void trajectoryPublisher::pubflatrefState(){
 
   flatrefState_.header.stamp = ros::Time::now();
   flatrefState_.header.frame_id = "map";
-  flatrefState_.type_mask = 2;
+  flatrefState_.type_mask = flatref_type_;
   flatrefState_.position.x = p_targ(0);
   flatrefState_.position.y = p_targ(1);
   flatrefState_.position.z = p_targ(2);
@@ -157,7 +157,7 @@ void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
   //Fast Loop publishing reference states
   updateReference();
-  if(use_flatref_) pubflatrefState();
+  if(flatref_type_== 0) pubflatrefState();
   else pubrefState();
 }
 

@@ -24,7 +24,7 @@
         <param name="Kpos_x" value="8.0" />
         <param name="Kpos_y" value="8.0" />
         <param name="Kpos_z" value="30.0" />
-        <param name="enable_flatreference" value="true" />       
+        <param name="enable_flatreference" value="2" />
   </node>
 
 
