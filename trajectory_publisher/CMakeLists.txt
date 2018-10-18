@@ -17,6 +17,7 @@ cs_add_executable(trajectory_publisher
         src/trajectory.cpp
         src/polynomialtrajectory.cpp
         src/shapetrajectory.cpp
+        src/fliptrajectory.cpp
         )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 ##########
