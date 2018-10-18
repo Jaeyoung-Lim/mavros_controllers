@@ -92,6 +92,18 @@ Eigen::Vector3d shapetrajectory::getVelocity(double time){
 
 }
 
+Eigen::Vector3d shapetrajectory::getAcceleration(double time){
+
+  Eigen::Vector3d acceleration;
+
+  switch(type_) {
+    case TRAJ_CIRCLE :
+      acceleration = traj_omega_ * traj_axis_.cross(getVelocity(time));
+  }
+  return acceleration;
+
+}
+
 nav_msgs::Path shapetrajectory::getSegment(){
 
   Eigen::Vector3d targetPosition;

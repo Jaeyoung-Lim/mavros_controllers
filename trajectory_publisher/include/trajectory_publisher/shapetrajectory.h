@@ -32,6 +32,7 @@ public:
   void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk);
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
+  Eigen::Vector3d getAcceleration(double time);
   double getsamplingTime(){return dt_;};
   double getDuration(){ return T_;};
   nav_msgs::Path getSegment();
