@@ -11,6 +11,9 @@ The repository contains controllers for controlling MAVs using the mavros packag
 
 [![Hovering done](https://img.youtube.com/vi/FRaPGjX9m-c/0.jpg)](https://youtu.be/FRaPGjX9m-c "Hovering done")
 
+[![Circular trajectory tracking](https://img.youtube.com/vi/IEyocdnlYw0/0.jpg)](https://youtu.be/IEyocdnlYw0 "Circular trajectory tracking")
+
+
 ## Nodes
 ### geometric_controller
 
