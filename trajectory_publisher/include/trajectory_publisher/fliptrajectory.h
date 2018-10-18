@@ -14,12 +14,13 @@ private:
   int type_;
   int N;
   double dt_;
-  double T_;
+  double T_, traj_omega_;
+  double thrust;
   Eigen::Vector3d traj_axis_;
   Eigen::Vector3d traj_origin_;
 
 public:
-  fliptrajectory(int type);
+  fliptrajectory();
   virtual ~fliptrajectory();
   void initPrimitives(Eigen::Vector3d pos, Eigen::Vector3d axis, double omega);
   void generatePrimitives(Eigen::Vector3d pos);
@@ -28,6 +29,7 @@ public:
   void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk);
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
+  Eigen::Vector3d getAcceleration(double time);
   double getsamplingTime(){return dt_;};
   double getDuration(){ return T_;};
   nav_msgs::Path getSegment();

@@ -57,7 +57,7 @@ Eigen::Vector3d shapetrajectory::getPosition(double time){
 
   switch(type_) {
     case TRAJ_ZERO :
-      position << 0.0, 0.0, 0.0;
+      position =traj_origin_;
       break;
 
     case TRAJ_CIRCLE :

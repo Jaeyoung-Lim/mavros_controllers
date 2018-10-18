@@ -21,6 +21,7 @@
 #include "trajectory_publisher/trajectory.h"
 #include "trajectory_publisher/polynomialtrajectory.h"
 #include "trajectory_publisher/shapetrajectory.h"
+#include "trajectory_publisher/fliptrajectory.h"
 
 using namespace std;
 using namespace Eigen;
@@ -50,7 +51,7 @@ private:
   Eigen::Vector3d p_targ, v_targ, a_targ;
   Eigen::Vector3d p_mav_, v_mav_;
   Eigen::Vector3d shape_origin_, shape_axis_;
-  double shape_omega_ = 0;
+  double shape_omega_, flip_omega_;
   double theta_ = 0.0;
   double controlUpdate_dt_;
   double primitive_duration_;

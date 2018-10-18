@@ -21,7 +21,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   trajloop_timer_ = nh_.createTimer(ros::Duration(0.1), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
 
-  trajtriggerServ_ = nh_.advertiseService("start", &trajectoryPublisher::triggerCallback, this);
+  trajtriggerServ_ = nh_.advertiseService("/trajectory_publisher/trigger_flip", &trajectoryPublisher::triggerCallback, this);
 
   nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_x_, 0.0);
   nh_.param<double>("/trajectory_publisher/initpos_y", init_pos_y_, 0.0);
@@ -30,6 +30,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<double>("/trajectory_publisher/horizon", primitive_duration_, 1.0);
   nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
   nh_.param<double>("/trajectory_publisher/shape_omega", shape_omega_, 1.5);
+  nh_.param<double>("/trajectory_publisher/flip_omega", flip_omega_, 12.0);
   nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
   nh_.param<int>("/trajectory_publisher/reference_type", flatref_type_, 2);
@@ -56,7 +57,14 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
       inputs_.at(i) = inputs_.at(i) * max_jerk_;
     }
   }
-  else {//Shape trajectories
+  else if(trajectory_type_ == 2){
+    num_primitives_ = 2;
+    motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(0));
+    motionPrimitives_.emplace_back(std::make_shared<fliptrajectory>());
+    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset0", 1));
+    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset1", 1));
+
+  } else {//Shape trajectories
 
     num_primitives_ = 1;
     motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(trajectory_type_));
@@ -66,7 +74,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   p_targ << init_pos_x_, init_pos_y_, init_pos_z_;
   v_targ << 0.0, 0.0, 0.0;
   shape_origin_ << init_pos_x_, init_pos_y_, init_pos_z_;
-  shape_axis_ << 0.0, 0.0, 1.0;
+  shape_axis_ << 1.0, 0.0, 0.0;
   motion_selector_ = 0;
 
   initializePrimitives(trajectory_type_);
@@ -84,10 +92,13 @@ void trajectoryPublisher::updateReference() {
 }
 
 void trajectoryPublisher::initializePrimitives(int type){
-  if(type == 0){
+  if(type == 0){ //polynomial trajectories
     for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->generatePrimitives(p_mav_, v_mav_, inputs_.at(i));
   }
-  else {
+  else if(type == 2){//flip trajectory
+    for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->initPrimitives(shape_origin_, shape_axis_, flip_omega_);
+  }
+  else { //shape trajectory
     for(int i = 0; i < motionPrimitives_.size(); i++ ) motionPrimitives_.at(i)->initPrimitives(shape_origin_, shape_axis_, shape_omega_);
     //TODO: Pass in parameters for primitive trajectories
     
@@ -157,7 +168,7 @@ void trajectoryPublisher::loopCallback(const ros::TimerEvent& event){
 void trajectoryPublisher::refCallback(const ros::TimerEvent& event){
   //Fast Loop publishing reference states
   updateReference();
-  if(flatref_type_== 0) pubflatrefState();
+  if(flatref_type_!= 0) pubflatrefState();
   else pubrefState();
 }
 
@@ -165,9 +176,11 @@ bool trajectoryPublisher::triggerCallback(std_srvs::SetBool::Request &req,
                                           std_srvs::SetBool::Response &res){
   unsigned char mode = req.data;
 
+  motion_selector_ = 1;
+
   start_time_ = ros::Time::now();
   res.success = true;
-  res.message = "trajectory triggered";
+  res.message = "Flip triggered";
 }
 
 void trajectoryPublisher::motionselectorCallback(const std_msgs::Int32& selector_msg){
