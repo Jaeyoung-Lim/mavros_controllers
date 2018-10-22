@@ -74,10 +74,12 @@ class geometricCtrl
     Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
     Eigen::Vector3d mavPos_, mavVel_, mavRate_;
     double mavYaw_;
-    Eigen::Vector3d a_des, a_fb, a_ref, a_rd, g_;
+    Eigen::Vector3d a_des, a_fb, a_ref, a_rd, a_dob, g_;
     Eigen::Vector4d mavAtt_, q_ref, q_des;
     Eigen::Vector4d cmdBodyRate_; //{wx, wy, wz, Thrust}
     Eigen::Vector3d Kpos_, Kvel_, D_;
+    std::vector<Eigen::Vector2d> q_, p_;
+    Eigen::Vector3d a0, a1, tau;
     double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
 
     void pubMotorCommands();
@@ -102,6 +104,7 @@ class geometricCtrl
   public:
     geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
     void computeBodyRateCmd(bool ctrl_mode);
+    Eigen::Vector3d disturbanceobserver(Eigen::Vector3d pos_error, Eigen::Vector3d acc_setpoint);
     Eigen::Vector4d quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p);
     Eigen::Vector4d attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
     virtual ~ geometricCtrl();
