@@ -32,6 +32,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
   nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true);
   nh_.param<bool>("/geometric_controller/enable_gazebo_state", use_gzstates_, false);
+  nh_.param<bool>("/geometric_controller/enable_dob", use_dob_, false);
   nh_.param<double>("/geometric_controller/max_acc", max_fb_acc_, 7.0);
   nh_.param<double>("/geometric_controller/yaw_heading", mavYaw_, 0.0);
   nh_.param<double>("/geometric_controller/drag_dx", dx_, 0.0);
@@ -235,15 +236,22 @@ void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   errorVel_ = mavVel_ - targetVel_;
   a_ref = targetAcc_;
 
-  /// Compute BodyRate commands using differential flatness
-  /// Controller based on Faessler 2017
-  q_ref = acc2quaternion(a_ref - g_, mavYaw_);
-  R_ref = quat2RotMatrix(q_ref);
-  a_fb = Kpos_.asDiagonal() * errorPos_ + Kvel_.asDiagonal() * errorVel_; //feedforward term for trajectory error
-  if(a_fb.norm() > max_fb_acc_) a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb;
-  a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
-  a_des = a_fb + a_ref - a_rd - g_;
-  q_des = acc2quaternion(a_des, mavYaw_);
+  if(use_dob_){
+    /// Compute BodyRate commands using disturbance observer
+    /// From Hyuntae Kim
+
+
+  } else {
+    /// Compute BodyRate commands using differential flatness
+    /// Controller based on Faessler 2017
+    q_ref = acc2quaternion(a_ref - g_, mavYaw_);
+    R_ref = quat2RotMatrix(q_ref);
+    a_fb = Kpos_.asDiagonal() * errorPos_ + Kvel_.asDiagonal() * errorVel_; //feedforward term for trajectory error
+    if(a_fb.norm() > max_fb_acc_) a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb; //Clip acceleration if reference is too large
+    a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
+    a_des = a_fb + a_ref - a_rd - g_;
+    q_des = acc2quaternion(a_des, mavYaw_);
+  }
 
   cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 }
