@@ -80,6 +80,8 @@ class geometricCtrl
     Eigen::Vector3d Kpos_, Kvel_, D_;
     std::vector<Eigen::Vector2d> q_, p_;
     Eigen::Vector3d a0, a1, tau;
+    double a0_x, a0_y, a0_z, a1_x, a1_y, a1_z, tau_x, tau_y, tau_z;
+    double dhat_max, dhat_min;
     double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
 
     void pubMotorCommands();

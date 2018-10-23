@@ -32,7 +32,6 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
   nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true);
   nh_.param<bool>("/geometric_controller/enable_gazebo_state", use_gzstates_, false);
-  nh_.param<bool>("/geometric_controller/enable_dob", use_dob_, false);
   nh_.param<double>("/geometric_controller/max_acc", max_fb_acc_, 7.0);
   nh_.param<double>("/geometric_controller/yaw_heading", mavYaw_, 0.0);
   nh_.param<double>("/geometric_controller/drag_dx", dx_, 0.0);
@@ -46,6 +45,20 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 3.7);
   nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 3.7);
   nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 10.0);
+  nh_.param<bool>("/geometric_controller/enable_dob", use_dob_, false);
+  nh_.param<double>("/geometric_controller/dob/a0_x", a0_x, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a0_y", a0_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a0_z", a0_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_x", a1_x, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_y", a1_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_z", a1_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_y", a1_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_z", a1_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/tau_x", tau_x, 10.0);
+  nh_.param<double>("/geometric_controller/dob/tau_y", tau_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/tau_z", tau_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/max_dhat", dhat_max, 10.0);
+  nh_.param<double>("/geometric_controller/dob/min_dhat", dhat_min, -10.0);
 
   targetPos_ << 0.0, 0.0, 1.5; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
@@ -60,9 +73,9 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
     q_.at(i) << 0.0, 0.0;
     p_.at(i) << 0.0, 0.0;
   }
-  a0 << 1.0, 1.0, 1.0;
-  a1 << 1.0, 1.0, 1.0;
-  tau << 1.0, 1.0, 1.0;
+  a0 << a0_x, a0_y, a0_z;
+  a1 << a1_x, a1_y, a1_z;
+  tau << tau_x, tau_y, tau_z;
 
 }
 geometricCtrl::~geometricCtrl() {
@@ -372,7 +385,6 @@ bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
 Eigen::Vector3d geometricCtrl::disturbanceobserver(Eigen::Vector3d pos_error, Eigen::Vector3d acc_setpoint){
 
   Eigen::Vector3d acc_input, yq, yp, d_hat;
-  double dhat_max, dhat_min;
   double control_dt = 0.01;
 
   dhat_max = 10.0;
