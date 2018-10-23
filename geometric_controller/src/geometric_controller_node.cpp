@@ -376,18 +376,18 @@ Eigen::Vector3d geometricCtrl::disturbanceobserver(Eigen::Vector3d pos_error, Ei
   double control_dt = 0.01;
 
   dhat_max = 10.0;
-  dhat_min = 0.0;
+  dhat_min = -10.0;
 
   for(int i = 0; i < acc_input.size(); i++){
     //Update dob states
     p_.at(i)(0) = p_.at(i)(0) + p_.at(i)(1) * control_dt;
-    p_.at(i)(1) = (-a0(i) * control_dt / tau(i)) * p_.at(i)(0) + (1 - a1(i) * control_dt / tau(i)) + control_dt * acc_setpoint(i);
+    p_.at(i)(1) = (-a0(i) * control_dt / std::pow(tau(i),2)) * p_.at(i)(0) + (1 - a1(i) * control_dt / tau(i)) + control_dt * acc_setpoint(i);
     q_.at(i)(0) = q_.at(i)(0) + control_dt * q_.at(i)(1);
     q_.at(i)(1) = q_.at(i)(1) + control_dt * ( (-a0(i)/std::pow(tau(i), 2))  * q_.at(i)(0) + (-a1(i)/tau(i)) * q_.at(i)(1) + pos_error(i));
 
     //Calculate outputs
     yp(i) = (a0(i) / pow(tau(i), 2)) * p_.at(i)(0);
-    yq(i) = (-a1(i)*a0(i) / std::pow(tau(i), 3))*q_.at(i)(0) + (std::pow(a0(i),2) / std::pow(tau(i), 4))*q_.at(i)(1) + a0(i) / pow(tau(i),2) * pos_error(i);
+    yq(i) = (-a1(i)*a0(i) / std::pow(tau(i), 3))*q_.at(i)(0) - (std::pow(a0(i),2) / std::pow(tau(i), 4))*q_.at(i)(1) + a0(i) / pow(tau(i),2) * pos_error(i);
     d_hat(i) = yq(i) - yp(i);
     d_hat(i) = std::max( std::min( d_hat(i), dhat_max), dhat_min);
     acc_input(i) = acc_setpoint(i) - d_hat(i);
