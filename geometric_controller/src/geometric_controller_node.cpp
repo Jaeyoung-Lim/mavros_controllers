@@ -45,6 +45,20 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 3.7);
   nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 3.7);
   nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 10.0);
+  nh_.param<bool>("/geometric_controller/enable_dob", use_dob_, false);
+  nh_.param<double>("/geometric_controller/dob/a0_x", a0_x, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a0_y", a0_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a0_z", a0_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_x", a1_x, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_y", a1_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_z", a1_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_y", a1_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/a1_z", a1_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/tau_x", tau_x, 10.0);
+  nh_.param<double>("/geometric_controller/dob/tau_y", tau_y, 10.0);
+  nh_.param<double>("/geometric_controller/dob/tau_z", tau_z, 10.0);
+  nh_.param<double>("/geometric_controller/dob/max_dhat", dhat_max, 10.0);
+  nh_.param<double>("/geometric_controller/dob/min_dhat", dhat_min, -10.0);
 
   targetPos_ << 0.0, 0.0, 1.5; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
@@ -52,6 +66,16 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
   Kvel_ << -Kvel_x_, -Kvel_z_, -Kvel_z_;
   D_ << dx_, dy_, dz_;
+
+  q_.resize(3);
+  p_.resize(3);
+  for (int i = 0; i < 3; ++i) {
+    q_.at(i) << 0.0, 0.0;
+    p_.at(i) << 0.0, 0.0;
+  }
+  a0 << a0_x, a0_y, a0_z;
+  a1 << a1_x, a1_y, a1_z;
+  tau << tau_x, tau_y, tau_z;
 
 }
 geometricCtrl::~geometricCtrl() {
@@ -235,15 +259,28 @@ void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   errorVel_ = mavVel_ - targetVel_;
   a_ref = targetAcc_;
 
-  /// Compute BodyRate commands using differential flatness
-  /// Controller based on Faessler 2017
-  q_ref = acc2quaternion(a_ref - g_, mavYaw_);
-  R_ref = quat2RotMatrix(q_ref);
-  a_fb = Kpos_.asDiagonal() * errorPos_ + Kvel_.asDiagonal() * errorVel_; //feedforward term for trajectory error
-  if(a_fb.norm() > max_fb_acc_) a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb;
-  a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
-  a_des = a_fb + a_ref - a_rd - g_;
-  q_des = acc2quaternion(a_des, mavYaw_);
+  if(use_dob_){
+    /// Compute BodyRate commands using disturbance observer
+    /// From Hyuntae Kim
+    /// Compute BodyRate commands using differential flatness
+    /// Controller based on Faessler 2017
+    q_ref = acc2quaternion(a_ref - g_, mavYaw_);
+    a_fb = Kpos_.asDiagonal() * errorPos_ + Kvel_.asDiagonal() * errorVel_; //feedforward term for trajectory error
+    a_dob = disturbanceobserver(errorPos_, a_ref + a_fb - a_dob);
+    a_des = a_ref + a_fb - a_dob - g_;
+    q_des = acc2quaternion(a_des, mavYaw_);
+
+  } else {
+    /// Compute BodyRate commands using differential flatness
+    /// Controller based on Faessler 2017
+    q_ref = acc2quaternion(a_ref - g_, mavYaw_);
+    R_ref = quat2RotMatrix(q_ref);
+    a_fb = Kpos_.asDiagonal() * errorPos_ + Kvel_.asDiagonal() * errorVel_; //feedforward term for trajectory error
+    if(a_fb.norm() > max_fb_acc_) a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb; //Clip acceleration if reference is too large
+    a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
+    a_des = a_fb + a_ref - a_rd - g_;
+    q_des = acc2quaternion(a_des, mavYaw_);
+  }
 
   cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 }
@@ -343,4 +380,27 @@ bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
   ctrl_mode_ = mode;
   res.success = ctrl_mode_;
   res.message = "controller triggered";
+}
+
+Eigen::Vector3d geometricCtrl::disturbanceobserver(Eigen::Vector3d pos_error, Eigen::Vector3d acc_setpoint){
+
+  Eigen::Vector3d acc_input, yq, yp, d_hat;
+  double control_dt = 0.01;
+
+  for(int i = 0; i < acc_input.size(); i++){
+    //Update dob states
+    p_.at(i)(0) = p_.at(i)(0) + p_.at(i)(1) * control_dt;
+    p_.at(i)(1) = (-a0(i) * control_dt / std::pow(tau(i),2)) * p_.at(i)(0) + (1 - a1(i) * control_dt / tau(i)) *p_.at(i)(1) + control_dt * acc_setpoint(i);
+    q_.at(i)(0) = q_.at(i)(0) + control_dt * q_.at(i)(1);
+    q_.at(i)(1) = (-a0(i)/std::pow(tau(i), 2)) * control_dt * q_.at(i)(0) + (1 - a1(i) * control_dt / tau(i)) * q_.at(i)(1) + control_dt * pos_error(i);
+
+    //Calculate outputs
+    yp(i) = (a0(i) / pow(tau(i), 2)) * p_.at(i)(0);
+    yq(i) = (-a1(i)*a0(i) / std::pow(tau(i), 3))*q_.at(i)(0) - (std::pow(a0(i),2) / std::pow(tau(i), 4)) * q_.at(i)(1) + a0(i) / pow(tau(i),2) * pos_error(i);
+    d_hat(i) = yq(i) - yp(i);
+    d_hat(i) = std::max( std::min( d_hat(i), dhat_max), dhat_min);
+    acc_input(i) = d_hat(i);
+  }
+
+  return acc_input;
 }

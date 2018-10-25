@@ -10,6 +10,7 @@
 #define TRAJ_ZERO 0
 #define TRAJ_CIRCLE 1
 #define TRAJ_LAMNISCATE 2
+#define TRAJ_STATIONARY 3
 
 class shapetrajectory : public trajectory {
 private:

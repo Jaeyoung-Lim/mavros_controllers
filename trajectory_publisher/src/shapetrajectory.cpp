@@ -57,10 +57,12 @@ Eigen::Vector3d shapetrajectory::getPosition(double time){
 
   switch(type_) {
     case TRAJ_ZERO :
+
       position << 0.0, 0.0, 0.0;
       break;
 
     case TRAJ_CIRCLE :
+
       theta = traj_omega_* time;
       position = std::cos(theta) * traj_radial_
                  + std::sin(theta) * traj_axis_.cross(traj_radial_)
@@ -69,12 +71,18 @@ Eigen::Vector3d shapetrajectory::getPosition(double time){
       break;
 
     case TRAJ_LAMNISCATE : //Lemniscate of Genero
+
       theta = traj_omega_* time;
       position = std::cos(theta) * traj_radial_
                  + std::sin(theta) * std::cos(theta) * traj_axis_.cross(traj_radial_)
                  + (1 - std::cos(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_
                  + traj_origin_;
       break;
+    case TRAJ_STATIONARY : //Lemniscate of Genero
+
+      position = traj_origin_;
+      break;
+
 
   }
   return position;
@@ -86,7 +94,13 @@ Eigen::Vector3d shapetrajectory::getVelocity(double time){
 
   switch(type_) {
     case TRAJ_CIRCLE :
+
       velocity = traj_omega_ * traj_axis_.cross(getPosition(time));
+      break;
+    case TRAJ_STATIONARY :
+
+      velocity << 0.0, 0.0, 0.0;
+      break;
   }
   return velocity;
 
@@ -98,7 +112,13 @@ Eigen::Vector3d shapetrajectory::getAcceleration(double time){
 
   switch(type_) {
     case TRAJ_CIRCLE :
+
       acceleration = traj_omega_ * traj_axis_.cross(getVelocity(time));
+      break;
+    case TRAJ_STATIONARY :
+
+      acceleration << 0.0, 0.0, 0.0;
+      break;
   }
   return acceleration;
 
