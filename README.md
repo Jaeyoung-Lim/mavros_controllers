@@ -37,6 +37,11 @@ cd <path_to_catkin_ws>
 catkin build mavros_controllers
 ```
 
+## Running the code
+The following launch file enables the geometric controller to follow a circular trajectory
+```
+roslaunch geometric_controller trajectory_track_circle.launch
+```
 
 ## Nodes
 `mavros_controllers` include the following packages.
