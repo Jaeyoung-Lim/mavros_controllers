@@ -13,8 +13,38 @@ The repository contains controllers for controlling MAVs using the mavros packag
 
 [![Circular trajectory tracking](https://img.youtube.com/vi/IEyocdnlYw0/0.jpg)](https://youtu.be/IEyocdnlYw0 "Circular trajectory tracking")
 
+## Getting Started
+### Install PX4 SITL(Only to Simulate)
+Follow the instructions as shown in the [PX4 Documentation](http://dev.px4.io/en/simulation/ros_interface.html)
+To check if the necessary environment is setup correctly, you can run the gazebo SITL using the following command
+```
+cd <Firmware_directory>
+make posix_sitl_default gazebo
+```
+To source the PX4 environment, run the following commands
+```
+source ~/catkin_ws/devel/setup.bash    // (optional)
+source Tools/setup_gazebo.bash $(pwd) $(pwd)/build/posix_sitl_default
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)/Tools/sitl_gazebo
+```
+You can run the rest of the roslaunch files in the same terminal
+
+### Building mavros_controllers
+mavros_controllers can be built using `catkin build`
+```
+cd <path_to_catkin_ws>
+catkin build mavros_controllers
+```
+
+## Running the code
+The following launch file enables the geometric controller to follow a circular trajectory
+```
+roslaunch geometric_controller trajectory_track_circle.launch
+```
 
 ## Nodes
+`mavros_controllers` include the following packages.
 ### geometric_controller
 
 The geometric controller publishes and subscribes the following topics.
