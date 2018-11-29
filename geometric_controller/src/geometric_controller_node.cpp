@@ -374,8 +374,23 @@ Eigen::Vector4d geometricCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Ve
 }
 
 Eigen::Vector4d geometricCtrl::jerkcontroller(Eigen::Vector3d &ref_jerk, Eigen::Vector3d &ref_acc, Eigen::Vector3d &ref_vel, Eigen::Vector4d &curr_att){
+  //Feedforward control from Lopez(2016)
   Eigen::Vector4d ratecmd;
-  //TODO: Implementation of jerk feedforward control
+  Eigen::Vector3d jerk, jerk_fb, acc_fb, jerk_vector, ratecmd_pre;
+  Eigen::Matrix3d R;
+
+  //TODO: calculate jerk_fb from acc_reference
+  // jerk_fb = calc(ref_acc, ref_vel, ref_pos);
+  jerk = ref_jerk + jerk_fb;
+  jerk_vector = jerk / jerk.norm() - ref_acc*ref_acc.dot(jerk) / std::pow(jerk.norm(), 3); //TODO: is ref_acc ?
+
+  R = quat2RotMatrix(curr_att);
+  ratecmd_pre = R.transpose() * jerk_vector;
+
+  ratecmd(0) =  (-1.0)* ratecmd_pre(2);
+  ratecmd(2) = ratecmd_pre(1);
+  ratecmd(3) = 0.0;
+
   return ratecmd;
 }
 
