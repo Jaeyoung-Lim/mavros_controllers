@@ -14,7 +14,6 @@
 #include <sstream>
 
 #include <Eigen/Dense>
-#include <mav_msgs/Actuators.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistStamped.h>
