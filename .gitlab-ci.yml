@@ -5,9 +5,6 @@ variables:
   ROS_DISTRO: "kinetic"
   CI_SOURCE_PATH: $(pwd)
 
-# cache:
-#   - apt
-
 before_script:
   - apt-get update
   - apt-get -y --quiet --no-install-recommends install apt-utils geographiclib-tools libgeographic-dev python-pip python-setuptools python-catkin-pkg python-rosdep python-wstool ros-kinetic-catkin python-catkin-tools python-rosinstall-generator ros-kinetic-mavros ros-kinetic-mavros-extras libeigen3-dev ros-kinetic-gazebo-msgs
