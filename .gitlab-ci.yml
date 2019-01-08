@@ -7,7 +7,7 @@ variables:
 
 before_script:
   - apt-get update
-  - apt-get -y --quiet --no-install-recommends install apt-utils geographiclib-tools libgeographic-dev python-pip python-setuptools python-catkin-pkg python-rosdep python-wstool ros-kinetic-catkin python-catkin-tools python-rosinstall-generator ros-kinetic-mavros ros-kinetic-mavros-extras libeigen3-dev
+  - apt-get -y --quiet --no-install-recommends install apt-utils geographiclib-tools libgeographic-dev python-pip python-setuptools python-catkin-pkg python-rosdep python-wstool ros-kinetic-catkin python-catkin-tools python-rosinstall-generator ros-kinetic-mavros ros-kinetic-mavros-extras libeigen3-dev ros-kinetic-gazebo-msgs
   - ln -s /usr/include/eigen3/Eigen /usr/local/include/Eigen
   # Create catkin workspace
   - mkdir -p ~/catkin_ws
