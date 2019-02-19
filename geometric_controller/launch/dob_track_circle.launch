@@ -1,7 +1,6 @@
 <launch>
   <arg name="mav_name" default="iris"/>
   <arg name="fcu_url" default="udp://:14540@127.0.0.1:14557"/>
-  <arg name="gcs_url" default="udp://:14550@127.0.0.1:14550"/>
   <arg name="tgt_system" default="1" />
   <arg name="tgt_component" default="1" />
   <arg name="command_input" default="2" />
@@ -31,7 +30,6 @@
 
   <node name="mavros" pkg="mavros" type="mavros_node" output="screen">
       <param name="fcu_url" value="$(arg fcu_url)" />
-      <param name="gcs_url" value="$(arg gcs_url)" />
       <param name="target_system_id" value="$(arg tgt_system)" />
       <param name="target_component_id" value="$(arg tgt_component)" />
       <!-- enable heartbeat send and reduce timeout -->
