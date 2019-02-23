@@ -47,12 +47,6 @@ cache:
 language: generic
 matrix:
   include:
-  - name: "Trusty indigo"
-    dist: trusty
-    env: ROS_DISTRO=indigo
-  - name: "Trusty jade"
-    dist: trusty
-    env: ROS_DISTRO=jade
   - name: "Xenial kinetic"
     dist: xenial
     env: ROS_DISTRO=kinetic
@@ -79,6 +73,8 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install dpkg
   - sudo apt-get install -y python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-ros-base
+  - sudo apt-get install -y python-catkin-tools python-rosinstall-generator ros-$ROS_DISTRO-geographic-msgs -y
+  - sudo apt-get install -y ros-kinetic-mavros ros-kinetic-mavros-extras libeigen3-dev geographiclib-tools libgeographic-dev ros-$ROS_DISTRO-gazebo-msgs
   - source /opt/ros/$ROS_DISTRO/setup.bash
   # Prepare rosdep to install dependencies.
   - sudo rosdep init
@@ -87,12 +83,12 @@ before_install:
 # Create a catkin workspace with the package under integration.
 install:
   - mkdir -p ~/catkin_ws/src
-  - cd ~/catkin_ws/src
-  - catkin_init_workspace
+  - cd ~/catkin_ws
+  - catkin init
   # Create the devel/setup.bash (run catkin_make with an empty workspace) and
   # source it to set the path variables.
   - cd ~/catkin_ws
-  - catkin_make
+  - catkin build
   - source devel/setup.bash
   # Add the package under integration to the workspace using a symlink.
   - cd ~/catkin_ws/src
@@ -102,13 +98,21 @@ install:
 # wstool looks for a ROSINSTALL_FILE defined in the environment variables.
 before_script:
   # source dependencies: install using wstool.
-  - cd ~/catkin_ws/src
-  - wstool init
-  - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
-  - wstool up
-  # package depdencies: install using rosdep.
+  - sudo ln -s /usr/include/eigen3/Eigen /usr/local/include/Eigen
   - cd ~/catkin_ws
-  - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
+  - wstool init src
+  # - rosinstall_generator --rosdistro kinetic mavlink | tee /tmp/mavros.rosinstall
+  # - rosinstall_generator --upstream mavros --deps | tee -a /tmp/mavros.rosinstall
+  # - wstool merge -y -t src /tmp/mavros.rosinstall
+  - wstool merge -t src $ROSINSTALL_FILE
+  - wstool update -t src -j4
+  # package depdencies: install using rosdep.
+  - rosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO
+  - wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+  - chmod +x install_geographiclib_datasets.sh
+  - sudo ./install_geographiclib_datasets.sh
+  # - sudo ~/catkin_ws/src/mavros/mavros/scripts/install_geographiclib_datasets.sh
+
 
 # Compile and test (mark the build as failed if any step fails). If the
 # CATKIN_OPTIONS file exists, use it as an argument to catkin_make, for example
@@ -121,7 +125,6 @@ before_script:
 script:
   - source /opt/ros/$ROS_DISTRO/setup.bash
   - cd ~/catkin_ws
-  - catkin_make $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
+  - catkin build $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
   # Run the tests, ensuring the path is set correctly.
   - source devel/setup.bash
-  - catkin_make run_tests && catkin_test_results
