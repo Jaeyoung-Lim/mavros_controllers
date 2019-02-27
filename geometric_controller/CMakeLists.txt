@@ -26,5 +26,5 @@ target_link_libraries(geometric_controller_node ${PROJECT_NAME} ${catkin_LIBRARI
 ##########
 # EXPORT #
 ##########
-#cs_install()
-#cs_export()
+cs_install()
+cs_export()
