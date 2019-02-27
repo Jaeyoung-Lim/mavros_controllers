@@ -8,13 +8,21 @@ catkin_simple(ALL_DEPS_REQUIRED)
 
 add_definitions(-std=c++11)
 
+#############
+# LIBRARIES #
+#############
+cs_add_library(${PROJECT_NAME}
+  src/geometric_controller.cpp 
+)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+
 ############
 # BINARIES #
 ############
-cs_add_executable(geometric_controller
-        src/geometric_controller.cpp src/geometric_controller_node.cpp
-        )
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+cs_add_executable(geometric_controller_node
+  src/geometric_controller_node.cpp
+)
+target_link_libraries(geometric_controller_node ${catkin_LIBRARIES})
 ##########
 # EXPORT #
 ##########
