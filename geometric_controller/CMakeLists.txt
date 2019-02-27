@@ -22,7 +22,7 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 cs_add_executable(geometric_controller_node
   src/geometric_controller_node.cpp
 )
-target_link_libraries(geometric_controller_node ${catkin_LIBRARIES})
+target_link_libraries(geometric_controller_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 ##########
 # EXPORT #
 ##########
