@@ -53,7 +53,7 @@ class geometricCtrl
     ros::Time last_request_, reference_request_now_, reference_request_last_;
 
     string mav_name_;
-    bool fail_detec_, ctrl_enable_;
+    bool fail_detec_, ctrl_enable_, feedthrough_enable_;
     int ctrl_mode_;
     bool landing_commanded_;
     bool use_gzstates_, sim_enable_, use_dob_;
@@ -108,6 +108,9 @@ class geometricCtrl
     Eigen::Vector3d disturbanceobserver(Eigen::Vector3d pos_error, Eigen::Vector3d acc_setpoint);
     Eigen::Vector4d quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p);
     Eigen::Vector4d attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
+    void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel);
+    void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
+    void setFeedthrough(bool feed_through);
     virtual ~ geometricCtrl();
 };
 
