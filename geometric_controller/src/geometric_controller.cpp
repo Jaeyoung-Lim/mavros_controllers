@@ -10,7 +10,8 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_private_(nh_private),
   fail_detec_(false),
   ctrl_enable_(true),
-  landing_commanded_(false){
+  landing_commanded_(false),
+  feedthrough_enable_(false) {
 
   referenceSub_=nh_.subscribe("reference/setpoint",1, &geometricCtrl::targetCallback,this,ros::TransportHints().tcpNoDelay());
   flatreferenceSub_ = nh_.subscribe("reference/flatsetpoint", 1, &geometricCtrl::flattargetCallback, this, ros::TransportHints().tcpNoDelay());
@@ -210,7 +211,7 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
   if(ctrl_mode_ == MODE_ROTORTHRUST){
     //TODO: Compute Thrust commands
   } else if(ctrl_mode_ == MODE_BODYRATE){
-      computeBodyRateCmd(false);
+      if(!feedthrough_enable_) computeBodyRateCmd(false);
       pubReferencePose();
       pubRateCommands();
   } else if(ctrl_mode_ == MODE_BODYTORQUE){
@@ -373,6 +374,14 @@ Eigen::Vector4d geometricCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Ve
   return ratecmd;
 }
 
+void geometricCtrl::getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel){
+  pos = mavPos_;
+  att = mavAtt_;
+  vel = mavVel_;
+  angvel = mavRate_;
+  
+}
+
 bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
                                           std_srvs::SetBool::Response &res){
   unsigned char mode = req.data;
@@ -403,4 +412,14 @@ Eigen::Vector3d geometricCtrl::disturbanceobserver(Eigen::Vector3d pos_error, Ei
   }
 
   return acc_input;
+}
+
+void geometricCtrl::setBodyRateCommand(Eigen::Vector4d bodyrate_command){
+  cmdBodyRate_= bodyrate_command;
+  
+}
+
+void geometricCtrl::setFeedthrough(bool feed_through){
+  feedthrough_enable_ = feed_through;
+
 }
