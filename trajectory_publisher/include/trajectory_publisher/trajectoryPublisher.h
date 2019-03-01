@@ -16,11 +16,15 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <std_srvs/SetBool.h>
 #include <nav_msgs/Path.h>
+#include <mavros_msgs/PositionTarget.h>
 #include <mav_planning_msgs/PolynomialTrajectory4D.h>
 #include "controller_msgs/FlatTarget.h"
 #include "trajectory_publisher/trajectory.h"
 #include "trajectory_publisher/polynomialtrajectory.h"
 #include "trajectory_publisher/shapetrajectory.h"
+
+#define REF_TWIST 8
+#define REF_SETPOINTRAW 16
 
 using namespace std;
 using namespace Eigen;
@@ -32,6 +36,7 @@ private:
   ros::Publisher trajectoryPub_;
   ros::Publisher referencePub_;
   ros::Publisher flatreferencePub_;
+  ros::Publisher rawreferencePub_;
   std::vector<ros::Publisher> primitivePub_;
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
@@ -43,8 +48,6 @@ private:
 
   nav_msgs::Path refTrajectory_;
   nav_msgs::Path primTrajectory_;
-  geometry_msgs::TwistStamped refState_;
-  controller_msgs::FlatTarget flatrefState_;
 
   int trajectory_type_;
   Eigen::Vector3d p_targ, v_targ, a_targ;
@@ -57,7 +60,7 @@ private:
   double trigger_time_;
   double init_pos_x_, init_pos_y_, init_pos_z_;
   double max_jerk_;
-  int flatref_type_;
+  int pubreference_type_;
   int num_primitives_;
   int motion_selector_;
 
@@ -72,6 +75,7 @@ public:
   void pubprimitiveTrajectory();
   void pubrefState();
   void pubflatrefState();
+  void pubrefSetpointRaw();
   void initializePrimitives(int type);
   void updatePrimitives();
   void loopCallback(const ros::TimerEvent& event);
