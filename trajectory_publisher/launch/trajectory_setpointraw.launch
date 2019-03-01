@@ -10,15 +10,15 @@
   <arg name="log_output" default="screen" />
   <arg name="fcu_protocol" default="v2.0" />
   <arg name="respawn_mavros" default="false" />
-  
+
   <node pkg="geometric_controller" type="geometric_controller_node" name="geometric_controller" output="screen">
   		<param name="mav_name" type="string" value="$(arg mav_name)" />
-          <remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
           <param name="ctrl_mode" value="$(arg command_input)" />
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
           <param name="enable_gazebo_state" value="true"/>
   </node>
 
+  
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
         <param name="trajectory_type" value="1" />
         <param name="shape_omega" value="1.2" />
@@ -27,7 +27,7 @@
         <param name="Kpos_x" value="8.0" />
         <param name="Kpos_y" value="8.0" />
         <param name="Kpos_z" value="30.0" />
-        <param name="reference_type" value="2" />
+        <param name="reference_type" value="16" />
   </node>
 
   <include file="$(find mavros)/launch/node.launch">
