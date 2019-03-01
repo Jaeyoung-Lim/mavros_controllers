@@ -245,8 +245,8 @@ void geometricCtrl::pubRateCommands(){
   angularVelMsg_.header.stamp = ros::Time::now();
   angularVelMsg_.header.frame_id= "map";
   angularVelMsg_.body_rate.x = cmdBodyRate_(0);
-  angularVelMsg_.body_rate.y = cmdBodyRate_(1) * -1.0;
-  angularVelMsg_.body_rate.z = cmdBodyRate_(2) * -1.0;
+  angularVelMsg_.body_rate.y = cmdBodyRate_(1);
+  angularVelMsg_.body_rate.z = cmdBodyRate_(2);
   angularVelMsg_.type_mask = 128; //Ignore orientation messages
   angularVelMsg_.thrust = cmdBodyRate_(3);
   angularVelPub_.publish(angularVelMsg_);
