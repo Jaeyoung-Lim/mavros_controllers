@@ -7,7 +7,7 @@
   <arg name="gazebo_simulation" default="true" />
   <arg name="visualization" default="true"/>
 
-  <node pkg="geometric_controller" type="geometric_controller" name="geometric_controller" output="screen">
+  <node pkg="geometric_controller" type="geometric_controller_node" name="geometric_controller" output="screen">
   		<param name="mav_name" type="string" value="$(arg mav_name)" />
           <remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
           <param name="ctrl_mode" value="$(arg command_input)" />
