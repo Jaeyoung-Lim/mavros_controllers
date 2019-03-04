@@ -4,26 +4,24 @@ variables:
   USE_ROSDEP: "true"
   ROS_DISTRO: "kinetic"
   CI_SOURCE_PATH: $(pwd)
+  ROSINSTALL_FILE: dependencies.rosinstall 
 
 before_script:
   - apt-get update
   - apt-get -y --quiet --no-install-recommends install apt-utils geographiclib-tools libgeographic-dev python-pip python-setuptools python-catkin-pkg python-rosdep python-wstool ros-kinetic-catkin python-catkin-tools python-rosinstall-generator ros-kinetic-mavros ros-kinetic-mavros-extras libeigen3-dev ros-kinetic-gazebo-msgs
-  - ln -s /usr/include/eigen3/Eigen /usr/local/include/Eigen
   # Create catkin workspace
-  - mkdir -p ~/catkin_ws
+  - mkdir -p ~/catkin_ws/src
+  - cd ~/catkin_ws/src
+  - ln -s $CI_PROJECT_DIR .
   - cd ~/catkin_ws
   - catkin config --init --mkdirs
   - catkin config --merge-devel
    # Pull source depends
-  - cd src
-  - wstool init
-  - if [[ -f $ROSINSTALL_FILE ]]; then wstool merge $ROSINSTALL_FILE; fi
-  - wstool up
+  - wstool init src
+  - wstool merge -t src src/mavros_controllers/$ROSINSTALL_FILE
   # Link the repo we are testing to the new workspace
   # Install dependencies using rosdep
-  - ln -s $CI_PROJECT_DIR .
-  - git clone https://github.com/catkin/catkin_simple.git
-  - cd ~/catkin_ws
+  - wstool update -t src -j4
   - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -q -y
   # Install GeographicLib datasets (for Ubuntu Trusty - can only download geoid model)
   - mkdir -p /usr/share/geographiclib
@@ -31,7 +29,6 @@ before_script:
   - chmod +x install_geographiclib_datasets.sh
   - ./install_geographiclib_datasets.sh
   - source /opt/ros/$ROS_DISTRO/setup.bash
-
 
 catkin_build:
   stage: build
