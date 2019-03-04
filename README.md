@@ -1,4 +1,5 @@
 # mavros_controllers
+[![Build Status](https://travis-ci.org/Jaeyoung-Lim/mavros_controllers.png?branch=master)](https://travis-ci.org/Jaeyoung-Lim/mavros_controllers)
 
 Controllers for controlling MAVs using the [mavros](https://github.com/mavlink/mavros) package in OFFBOARD mode.
 
