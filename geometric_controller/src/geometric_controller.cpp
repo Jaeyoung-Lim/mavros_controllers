@@ -18,7 +18,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   mavstateSub_ = nh_.subscribe("/mavros/state", 1, &geometricCtrl::mavstateCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &geometricCtrl::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
   gzmavposeSub_ = nh_.subscribe("/gazebo/model_states", 1, &geometricCtrl::gzmavposeCallback, this, ros::TransportHints().tcpNoDelay());
-  mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity", 1, &geometricCtrl::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
+  mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity_local", 1, &geometricCtrl::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
   ctrltriggerServ_ = nh_.advertiseService("tigger_rlcontroller", &geometricCtrl::ctrltriggerCallback, this);
   cmdloop_timer_ = nh_.createTimer(ros::Duration(0.01), &geometricCtrl::cmdloopCallback, this); // Define timer for constant loop rate
   statusloop_timer_ = nh_.createTimer(ros::Duration(1), &geometricCtrl::statusloopCallback, this); // Define timer for constant loop rate
@@ -43,8 +43,8 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<double>("/geometric_controller/Kp_x", Kpos_x_, 8.0);
   nh_.param<double>("/geometric_controller/Kp_y", Kpos_y_, 8.0);
   nh_.param<double>("/geometric_controller/Kp_z", Kpos_z_, 30.0);
-  nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 3.7);
-  nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 3.7);
+  nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 2.0);
+  nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 2.0);
   nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 10.0);
   nh_.param<bool>("/geometric_controller/enable_dob", use_dob_, false);
   nh_.param<double>("/geometric_controller/dob/a0_x", a0_x, 10.0);
