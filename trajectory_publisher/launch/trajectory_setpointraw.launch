@@ -43,7 +43,10 @@
       <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
   </include>
 
-  <include file="$(find px4)/launch/posix_sitl.launch"/>
+  <include file="$(find px4)/launch/posix_sitl.launch">
+      <arg name="vehicle" value="$(arg mav_name)"/>
+  </include>
+  
   <group if="$(arg visualization)">
       <node type="rviz" name="rviz" pkg="rviz" args="-d $(find geometric_controller)/launch/config_file.rviz" />
   </group>
