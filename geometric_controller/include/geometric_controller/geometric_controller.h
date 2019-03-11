@@ -13,7 +13,7 @@
 #include <string>
 #include <sstream>
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -27,6 +27,8 @@
 #include <controller_msgs/FlatTarget.h>
 #include <std_srvs/SetBool.h>
 #include <gazebo_msgs/ModelStates.h>
+#include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
+#include <trajectory_msgs/MultiDOFJointTrajectory.h>
 
 #define MODE_ROTORTHRUST  1
 #define MODE_BODYRATE     2
@@ -41,14 +43,16 @@ class geometricCtrl
     ros::NodeHandle nh_private_;
     ros::Subscriber referenceSub_;
     ros::Subscriber flatreferenceSub_;
+    ros::Subscriber multiDOFJointSub_;
     ros::Subscriber mavstateSub_;
     ros::Subscriber mavposeSub_, gzmavposeSub_;
     ros::Subscriber mavtwistSub_;
-    ros::Publisher rotorVelPub_, angularVelPub_;
+    ros::Publisher rotorVelPub_, angularVelPub_, target_pose_pub_;
     ros::Publisher referencePosePub_;
     ros::ServiceClient arming_client_;
     ros::ServiceClient set_mode_client_;
     ros::ServiceServer ctrltriggerServ_;
+    ros::ServiceServer land_service_;
     ros::Timer cmdloop_timer_, statusloop_timer_;
     ros::Time last_request_, reference_request_now_, reference_request_last_;
 
@@ -89,6 +93,7 @@ class geometricCtrl
     void odomCallback(const nav_msgs::OdometryConstPtr& odomMsg);
     void targetCallback(const geometry_msgs::TwistStamped& msg);
     void flattargetCallback(const controller_msgs::FlatTarget& msg);
+    void multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTrajectory& msg);
     void keyboardCallback(const geometry_msgs::Twist& msg);
     void cmdloopCallback(const ros::TimerEvent& event);
     void mavstateCallback(const mavros_msgs::State::ConstPtr& msg);
@@ -97,10 +102,27 @@ class geometricCtrl
     void gzmavposeCallback(const gazebo_msgs::ModelStates& msg);
     void statusloopCallback(const ros::TimerEvent& event);
     bool ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+    bool landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response);
     Eigen::Vector4d acc2quaternion(Eigen::Vector3d vector_acc, double yaw);
     Eigen::Vector4d rot2Quaternion(Eigen::Matrix3d R);
     Eigen::Matrix3d quat2RotMatrix(Eigen::Vector4d q);
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
+
+    enum FlightState {
+      WAITING_FOR_HOME_POSE, WAITING_TO_BE_ARMED, MISSION_EXECUTION, LANDING, LANDED
+    } node_state;
+
+    template <class T>
+    void waitForPredicate(const T* pred, const std::string& msg, double hz = 2.0){
+        ros::Rate pause(hz);
+        ROS_INFO_STREAM(msg);
+        while(ros::ok() && !(*pred)){
+            ros::spinOnce();
+            pause.sleep();
+        }
+    };
+    geometry_msgs::Pose home_pose_;
+    bool received_home_pose;
 
   public:
     geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);

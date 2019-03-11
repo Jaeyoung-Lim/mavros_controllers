@@ -11,10 +11,12 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   fail_detec_(false),
   ctrl_enable_(true),
   landing_commanded_(false),
-  feedthrough_enable_(false) {
+  feedthrough_enable_(false),
+  node_state(WAITING_FOR_HOME_POSE) {
 
   referenceSub_=nh_.subscribe("reference/setpoint",1, &geometricCtrl::targetCallback,this,ros::TransportHints().tcpNoDelay());
   flatreferenceSub_ = nh_.subscribe("reference/flatsetpoint", 1, &geometricCtrl::flattargetCallback, this, ros::TransportHints().tcpNoDelay());
+  multiDOFJointSub_ = nh_.subscribe("/command/trajectory", 1, &geometricCtrl::multiDOFJointCallback, this, ros::TransportHints().tcpNoDelay());
   mavstateSub_ = nh_.subscribe("/mavros/state", 1, &geometricCtrl::mavstateCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &geometricCtrl::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
   gzmavposeSub_ = nh_.subscribe("/gazebo/model_states", 1, &geometricCtrl::gzmavposeCallback, this, ros::TransportHints().tcpNoDelay());
@@ -25,9 +27,11 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
 
   angularVelPub_ = nh_.advertise<mavros_msgs::AttitudeTarget>("command/bodyrate_command", 1);
   referencePosePub_ = nh_.advertise<geometry_msgs::PoseStamped>("reference/pose", 1);
+  target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
 
   arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+  land_service_ = nh_.advertiseService("land", &geometricCtrl::landCallback, this);
 
   nh_.param<string>("/geometric_controller/mavname", mav_name_, "iris");
   nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
@@ -61,7 +65,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<double>("/geometric_controller/dob/max_dhat", dhat_max, 10.0);
   nh_.param<double>("/geometric_controller/dob/min_dhat", dhat_min, -10.0);
 
-  targetPos_ << 0.0, 0.0, 1.5; //Initial Position
+  targetPos_ << 0.0, 0.0, 2.0; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
   g_ << 0.0, 0.0, -9.8;
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
@@ -140,7 +144,31 @@ void geometricCtrl::flattargetCallback(const controller_msgs::FlatTarget& msg) {
   }
 }
 
+void geometricCtrl::multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTrajectory& msg) {
+
+  trajectory_msgs::MultiDOFJointTrajectoryPoint pt = msg.points[0];
+  reference_request_last_ = reference_request_now_;
+
+  targetPos_prev_ = targetPos_;
+  targetVel_prev_ = targetVel_;
+
+  reference_request_now_ = ros::Time::now();
+  reference_request_dt_ = (reference_request_now_ - reference_request_last_).toSec();
+
+  targetPos_ << pt.transforms[0].translation.x, pt.transforms[0].translation.y, pt.transforms[0].translation.z;
+  targetVel_ << pt.velocities[0].linear.x, pt.velocities[0].linear.y, pt.velocities[0].linear.z;
+
+  targetAcc_ << pt.accelerations[0].linear.x, pt.accelerations[0].linear.y, pt.accelerations[0].linear.z;
+  targetJerk_ << 0.0, 0.0, 0.0;
+  targetSnap_ << 0.0, 0.0, 0.0;
+}
+
 void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
+  if(!received_home_pose){
+      received_home_pose = true;
+      home_pose_ = msg.pose;
+      ROS_INFO_STREAM("Home pose initialized to: " << home_pose_);
+  }
   if(!use_gzstates_){
     mavPos_(0) = msg.pose.position.x;
     mavPos_(1) = msg.pose.position.y;
@@ -186,38 +214,85 @@ void geometricCtrl::gzmavposeCallback(const gazebo_msgs::ModelStates& msg){
   }
 }
 
-void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
-  if(sim_enable_){
-    // Enable OFFBoard mode and arm automatically
-    // This is only run if the vehicle is simulated
-    arm_cmd_.request.value = true;
-    offb_set_mode_.request.custom_mode = "OFFBOARD";
-    if( current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
-      if( set_mode_client_.call(offb_set_mode_) && offb_set_mode_.response.mode_sent){
-        ROS_INFO("Offboard enabled");
-      }
-      last_request_ = ros::Time::now();
-    } else {
-      if( !current_state_.armed && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
-        if( arming_client_.call(arm_cmd_) && arm_cmd_.response.success){
-          ROS_INFO("Vehicle armed");
-        }
-        last_request_ = ros::Time::now();
-      }
-    }
-  }
+bool geometricCtrl::landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response) {
+  node_state = LANDING;
+}
 
-  //TODO: Enable Failsaif sutdown
-  if(ctrl_mode_ == MODE_ROTORTHRUST){
-    //TODO: Compute Thrust commands
-  } else if(ctrl_mode_ == MODE_BODYRATE){
-      if(!feedthrough_enable_) computeBodyRateCmd(false);
-      pubReferencePose();
-      pubRateCommands();
-  } else if(ctrl_mode_ == MODE_BODYTORQUE){
-    //TODO: implement actuator commands for mavros
+// void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
+//   if(sim_enable_){
+//     // Enable OFFBoard mode and arm automatically
+//     // This is only run if the vehicle is simulated
+//     arm_cmd_.request.value = true;
+//     offb_set_mode_.request.custom_mode = "OFFBOARD";
+//     if( current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
+//       if( set_mode_client_.call(offb_set_mode_) && offb_set_mode_.response.mode_sent){
+//         ROS_INFO("Offboard enabled");
+//       }
+//       last_request_ = ros::Time::now();
+//     } else {
+//       if( !current_state_.armed && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
+//         if( arming_client_.call(arm_cmd_) && arm_cmd_.response.success){
+//           ROS_INFO("Vehicle armed");
+//         }
+//         last_request_ = ros::Time::now();
+//       }
+//     }
+//   }
+//
+//   //TODO: Enable Failsaif sutdown
+//   if(ctrl_mode_ == MODE_ROTORTHRUST){
+//     //TODO: Compute Thrust commands
+//   } else if(ctrl_mode_ == MODE_BODYRATE){
+//       if(!feedthrough_enable_) computeBodyRateCmd(false);
+//       pubReferencePose();
+//       pubRateCommands();
+//   } else if(ctrl_mode_ == MODE_BODYTORQUE){
+//     //TODO: implement actuator commands for mavros
+//   }
+//   ros::spinOnce();
+// }
+
+void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
+  switch (node_state) {
+  case WAITING_FOR_HOME_POSE:
+      waitForPredicate(&received_home_pose, "Waiting for home pose...");
+      ROS_INFO("Got pose! Drone Ready to be armed.");
+      node_state = WAITING_TO_BE_ARMED;
+      break;
+  case WAITING_TO_BE_ARMED:
+      waitForPredicate(&(current_state_.armed),
+                       "Waiting to be armed...");
+      ROS_INFO("Drone is Armed, beginning mission!");
+      node_state = MISSION_EXECUTION;
+      break;
+  case MISSION_EXECUTION:
+    //TODO: Enable Failsaif sutdown
+    if(ctrl_mode_ == MODE_ROTORTHRUST){
+      //TODO: Compute Thrust commands
+    } else if(ctrl_mode_ == MODE_BODYRATE){
+        if(!feedthrough_enable_) computeBodyRateCmd(false);
+        pubReferencePose();
+        pubRateCommands();
+    } else if(ctrl_mode_ == MODE_BODYTORQUE){
+      //TODO: implement actuator commands for mavros
+    }
+    ros::spinOnce();
+    break;
+  case LANDING: {
+    geometry_msgs::PoseStamped landingmsg;
+    landingmsg.header.stamp = ros::Time::now();
+    landingmsg.pose = home_pose_;
+    landingmsg.pose.position.z = landingmsg.pose.position.z + 1.0;
+    target_pose_pub_.publish(landingmsg);
+    node_state = LANDED;
+    ros::spinOnce();
+    break;
   }
-  ros::spinOnce();
+  case LANDED:
+    ROS_INFO("Landed. Please set to position control and disarm.");
+    cmdloop_timer_.stop();
+    break;
+  }
 }
 
 void geometricCtrl::mavstateCallback(const mavros_msgs::State::ConstPtr& msg){
@@ -379,7 +454,7 @@ void geometricCtrl::getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen:
   att = mavAtt_;
   vel = mavVel_;
   angvel = mavRate_;
-  
+
 }
 
 bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
@@ -416,7 +491,7 @@ Eigen::Vector3d geometricCtrl::disturbanceobserver(Eigen::Vector3d pos_error, Ei
 
 void geometricCtrl::setBodyRateCommand(Eigen::Vector4d bodyrate_command){
   cmdBodyRate_= bodyrate_command;
-  
+
 }
 
 void geometricCtrl::setFeedthrough(bool feed_through){
