@@ -218,40 +218,6 @@ bool geometricCtrl::landCallback(std_srvs::SetBool::Request& request, std_srvs::
   node_state = LANDING;
 }
 
-// void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
-//   if(sim_enable_){
-//     // Enable OFFBoard mode and arm automatically
-//     // This is only run if the vehicle is simulated
-//     arm_cmd_.request.value = true;
-//     offb_set_mode_.request.custom_mode = "OFFBOARD";
-//     if( current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
-//       if( set_mode_client_.call(offb_set_mode_) && offb_set_mode_.response.mode_sent){
-//         ROS_INFO("Offboard enabled");
-//       }
-//       last_request_ = ros::Time::now();
-//     } else {
-//       if( !current_state_.armed && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
-//         if( arming_client_.call(arm_cmd_) && arm_cmd_.response.success){
-//           ROS_INFO("Vehicle armed");
-//         }
-//         last_request_ = ros::Time::now();
-//       }
-//     }
-//   }
-//
-//   //TODO: Enable Failsaif sutdown
-//   if(ctrl_mode_ == MODE_ROTORTHRUST){
-//     //TODO: Compute Thrust commands
-//   } else if(ctrl_mode_ == MODE_BODYRATE){
-//       if(!feedthrough_enable_) computeBodyRateCmd(false);
-//       pubReferencePose();
-//       pubRateCommands();
-//   } else if(ctrl_mode_ == MODE_BODYTORQUE){
-//     //TODO: implement actuator commands for mavros
-//   }
-//   ros::spinOnce();
-// }
-
 void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
   switch (node_state) {
   case WAITING_FOR_HOME_POSE:
