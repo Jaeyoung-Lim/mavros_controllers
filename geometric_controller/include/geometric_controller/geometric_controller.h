@@ -13,7 +13,7 @@
 #include <string>
 #include <sstream>
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistStamped.h>
