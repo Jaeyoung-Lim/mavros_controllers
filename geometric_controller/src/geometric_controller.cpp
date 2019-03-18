@@ -226,17 +226,9 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
       node_state = MISSION_EXECUTION;
       break;
   case MISSION_EXECUTION:
-    //TODO: Enable Failsaif sutdown
-    if(ctrl_mode_ == MODE_ROTORTHRUST){
-      //TODO: Compute Thrust commands
-    } else if(ctrl_mode_ == MODE_BODYRATE){
-        if(!feedthrough_enable_) computeBodyRateCmd(false);
-        pubReferencePose();
-        pubRateCommands();
-    } else if(ctrl_mode_ == MODE_BODYTORQUE){
-      //TODO: implement actuator commands for mavros
-    }
-    ros::spinOnce();
+    if(!feedthrough_enable_)  computeBodyRateCmd(false);
+    pubReferencePose();
+    pubRateCommands();
     break;
   case LANDING: {
     geometry_msgs::PoseStamped landingmsg;
