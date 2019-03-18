@@ -223,12 +223,6 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
   case WAITING_FOR_HOME_POSE:
       waitForPredicate(&received_home_pose, "Waiting for home pose...");
       ROS_INFO("Got pose! Drone Ready to be armed.");
-      node_state = WAITING_TO_BE_ARMED;
-      break;
-  case WAITING_TO_BE_ARMED:
-      waitForPredicate(&(current_state_.armed),
-                       "Waiting to be armed...");
-      ROS_INFO("Drone is Armed, beginning mission!");
       node_state = MISSION_EXECUTION;
       break;
   case MISSION_EXECUTION:
@@ -266,7 +260,25 @@ void geometricCtrl::mavstateCallback(const mavros_msgs::State::ConstPtr& msg){
 }
 
 void geometricCtrl::statusloopCallback(const ros::TimerEvent& event){
-
+  if(sim_enable_){
+    // Enable OFFBoard mode and arm automatically
+    // This is only run if the vehicle is simulated
+    arm_cmd_.request.value = true;
+    offb_set_mode_.request.custom_mode = "OFFBOARD";
+    if( current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
+      if( set_mode_client_.call(offb_set_mode_) && offb_set_mode_.response.mode_sent){
+        ROS_INFO("Offboard enabled");
+      }
+      last_request_ = ros::Time::now();
+    } else {
+      if( !current_state_.armed && (ros::Time::now() - last_request_ > ros::Duration(5.0))){
+        if( arming_client_.call(arm_cmd_) && arm_cmd_.response.success){
+          ROS_INFO("Vehicle armed");
+        }
+        last_request_ = ros::Time::now();
+      }
+    }
+  }
 }
 
 void geometricCtrl::pubReferencePose(){
