@@ -109,7 +109,7 @@ class geometricCtrl
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
 
     enum FlightState {
-      WAITING_FOR_HOME_POSE, WAITING_TO_BE_ARMED, MISSION_EXECUTION, LANDING, LANDED
+      WAITING_FOR_HOME_POSE, MISSION_EXECUTION, LANDING, LANDED
     } node_state;
 
     template <class T>
