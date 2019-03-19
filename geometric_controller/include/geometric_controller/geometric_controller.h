@@ -26,7 +26,6 @@
 #include <mavros_msgs/AttitudeTarget.h>
 #include <controller_msgs/FlatTarget.h>
 #include <std_srvs/SetBool.h>
-#include <gazebo_msgs/ModelStates.h>
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 
@@ -60,7 +59,7 @@ class geometricCtrl
     bool fail_detec_, ctrl_enable_, feedthrough_enable_;
     int ctrl_mode_;
     bool landing_commanded_;
-    bool use_gzstates_, sim_enable_, use_dob_;
+    bool sim_enable_, use_dob_;
     double kp_rot_, kd_rot_;
     double reference_request_dt_;
     double attctrl_tau_;
@@ -99,7 +98,6 @@ class geometricCtrl
     void mavstateCallback(const mavros_msgs::State::ConstPtr& msg);
     void mavposeCallback(const geometry_msgs::PoseStamped& msg);
     void mavtwistCallback(const geometry_msgs::TwistStamped& msg);
-    void gzmavposeCallback(const gazebo_msgs::ModelStates& msg);
     void statusloopCallback(const ros::TimerEvent& event);
     bool ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
     bool landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response);

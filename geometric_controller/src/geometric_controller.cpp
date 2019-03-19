@@ -19,7 +19,6 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   multiDOFJointSub_ = nh_.subscribe("/command/trajectory", 1, &geometricCtrl::multiDOFJointCallback, this, ros::TransportHints().tcpNoDelay());
   mavstateSub_ = nh_.subscribe("/mavros/state", 1, &geometricCtrl::mavstateCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &geometricCtrl::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
-  gzmavposeSub_ = nh_.subscribe("/gazebo/model_states", 1, &geometricCtrl::gzmavposeCallback, this, ros::TransportHints().tcpNoDelay());
   mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity_local", 1, &geometricCtrl::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
   ctrltriggerServ_ = nh_.advertiseService("tigger_rlcontroller", &geometricCtrl::ctrltriggerCallback, this);
   cmdloop_timer_ = nh_.createTimer(ros::Duration(0.01), &geometricCtrl::cmdloopCallback, this); // Define timer for constant loop rate
@@ -36,7 +35,6 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<string>("/geometric_controller/mavname", mav_name_, "iris");
   nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
   nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true);
-  nh_.param<bool>("/geometric_controller/enable_gazebo_state", use_gzstates_, false);
   nh_.param<double>("/geometric_controller/max_acc", max_fb_acc_, 7.0);
   nh_.param<double>("/geometric_controller/yaw_heading", mavYaw_, 0.0);
   nh_.param<double>("/geometric_controller/drag_dx", dx_, 0.0);
@@ -169,49 +167,24 @@ void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
       home_pose_ = msg.pose;
       ROS_INFO_STREAM("Home pose initialized to: " << home_pose_);
   }
-  if(!use_gzstates_){
-    mavPos_(0) = msg.pose.position.x;
-    mavPos_(1) = msg.pose.position.y;
-    mavPos_(2) = msg.pose.position.z;
-    mavAtt_(0) = msg.pose.orientation.w;
-    mavAtt_(1) = msg.pose.orientation.x;
-    mavAtt_(2) = msg.pose.orientation.y;
-    mavAtt_(3) = msg.pose.orientation.z;
-  }
+  mavPos_(0) = msg.pose.position.x;
+  mavPos_(1) = msg.pose.position.y;
+  mavPos_(2) = msg.pose.position.z;
+  mavAtt_(0) = msg.pose.orientation.w;
+  mavAtt_(1) = msg.pose.orientation.x;
+  mavAtt_(2) = msg.pose.orientation.y;
+  mavAtt_(3) = msg.pose.orientation.z;
 }
 
 void geometricCtrl::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
-  if(!use_gzstates_) {
-    mavVel_(0) = msg.twist.linear.x;
-    mavVel_(1) = msg.twist.linear.y;
-    mavVel_(2) = msg.twist.linear.z;
-    mavRate_(0) = msg.twist.angular.x;
-    mavRate_(1) = msg.twist.angular.y;
-    mavRate_(2) = msg.twist.angular.z;
-  }
-}
-
-void geometricCtrl::gzmavposeCallback(const gazebo_msgs::ModelStates& msg){
-  //TODO: gazebo_msgs should not be compiled on the vehicle
-  if(use_gzstates_){
-    for(int i = 0; i < msg.pose.size(); i++){
-      if(msg.name[i] == mav_name_){
-        mavPos_(0) = msg.pose[i].position.x;
-        mavPos_(1) = msg.pose[i].position.y;
-        mavPos_(2) = msg.pose[i].position.z;
-        mavAtt_(0) = msg.pose[i].orientation.w;
-        mavAtt_(1) = msg.pose[i].orientation.x;
-        mavAtt_(2) = msg.pose[i].orientation.y;
-        mavAtt_(3) = msg.pose[i].orientation.z;
-        mavVel_(0) = msg.twist[i].linear.x;
-        mavVel_(1) = msg.twist[i].linear.y;
-        mavVel_(2) = msg.twist[i].linear.z;
-        mavRate_(0) = msg.twist[i].angular.x;
-        mavRate_(1) = msg.twist[i].angular.y;
-        mavRate_(2) = msg.twist[i].angular.z;
-      }
-    }
-  }
+  
+  mavVel_(0) = msg.twist.linear.x;
+  mavVel_(1) = msg.twist.linear.y;
+  mavVel_(2) = msg.twist.linear.z;
+  mavRate_(0) = msg.twist.angular.x;
+  mavRate_(1) = msg.twist.angular.y;
+  mavRate_(2) = msg.twist.angular.z;
+  
 }
 
 bool geometricCtrl::landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response) {
