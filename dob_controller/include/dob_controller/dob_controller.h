@@ -5,6 +5,7 @@
 
 #include <ros/ros.h>
 #include <Eigen/Dense>
+#include "geometric_controller/geometric_controller.h"
 
 using namespace std;
 using namespace Eigen;
@@ -24,6 +25,8 @@ class DisturbanceObserverCtrl
     void CmdLoopCallback(const ros::TimerEvent& event);
     void StatusLoopCallback(const ros::TimerEvent& event);
     Eigen::Vector3d disturbanceobserver(Eigen::Vector3d pos_error, Eigen::Vector3d acc_setpoint);
+
+    geometricCtrl geometric_controller_;
 
   public:
     DisturbanceObserverCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
