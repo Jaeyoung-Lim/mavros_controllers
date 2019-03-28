@@ -60,7 +60,8 @@ class geometricCtrl
     int ctrl_mode_;
     bool landing_commanded_;
     bool sim_enable_, use_dob_;
-    double kp_rot_, kd_rot_;
+    bool velocity_yaw_;
+    double kp_rot_, kd_rot_, yaw_p;
     double reference_request_dt_;
     double attctrl_tau_;
     double norm_thrust_const_;
@@ -102,6 +103,7 @@ class geometricCtrl
     bool ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
     bool landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response);
     Eigen::Vector4d acc2quaternion(Eigen::Vector3d vector_acc, double yaw);
+    Eigen::Vector4d acc2quaternion(Eigen::Vector3d vector_acc, Eigen::Vector3d heading_vec);
     Eigen::Vector4d rot2Quaternion(Eigen::Matrix3d R);
     Eigen::Matrix3d quat2RotMatrix(Eigen::Vector4d q);
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
