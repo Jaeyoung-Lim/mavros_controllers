@@ -21,7 +21,7 @@ class DisturbanceObserverCtrl
     Eigen::Vector3d g_;
     Eigen::Vector3d a0, a1, tau;
     Eigen::Vector3d Kpos_, Kvel_, D_;
-
+    Eigen::Vector3d a_fb, a_des;
 
     double a0_x, a0_y, a0_z, a1_x, a1_y, a1_z, tau_x, tau_y, tau_z;
     double dhat_max, dhat_min;

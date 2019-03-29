@@ -267,9 +267,8 @@ void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 }
 
-void geometricCtrl::setAccelerationReference(Eigen::Vector3d a_ref){
-  q_des = acc2quaternion(a_ref, mavYaw_);
-
+void geometricCtrl::setAccelerationReference(Eigen::Vector3d acc_ref){
+  q_des = acc2quaternion(acc_ref, mavYaw_);
   cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 }
 

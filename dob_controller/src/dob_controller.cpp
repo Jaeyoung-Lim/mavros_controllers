@@ -15,12 +15,12 @@ DisturbanceObserverCtrl::DisturbanceObserverCtrl(const ros::NodeHandle& nh, cons
 
    double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
 
-  nh_.param<double>("/geometric_controller/Kp_x", Kpos_x_, 8.0);
-  nh_.param<double>("/geometric_controller/Kp_y", Kpos_y_, 8.0);
-  nh_.param<double>("/geometric_controller/Kp_z", Kpos_z_, 30.0);
-  nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 2.0);
-  nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 2.0);
-  nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 10.0);
+  nh_.param<double>("/dob_controller/Kp_x", Kpos_x_, 8.0);
+  nh_.param<double>("/dob_controller/Kp_y", Kpos_y_, 8.0);
+  nh_.param<double>("/dob_controller/Kp_z", Kpos_z_, 30.0);
+  nh_.param<double>("/dob_controller/Kv_x", Kvel_x_, 2.0);
+  nh_.param<double>("/dob_controller/Kv_y", Kvel_y_, 2.0);
+  nh_.param<double>("/dob_controller/Kv_z", Kvel_z_, 10.0);
   nh_.param<double>("/dob_controller/dob/a0_x", a0_x, 10.0);
   nh_.param<double>("/dob_controller/dob/a0_y", a0_y, 10.0);
   nh_.param<double>("/dob_controller/dob/a0_z", a0_z, 10.0);
@@ -48,7 +48,8 @@ DisturbanceObserverCtrl::DisturbanceObserverCtrl(const ros::NodeHandle& nh, cons
   a0 << a0_x, a0_y, a0_z;
   a1 << a1_x, a1_y, a1_z;
 
-  geometric_controller_.setFeedthrough(true);
+  a_fb << 0.0, 0.0, 0.0;
+  a_dob << 0.0, 0.0, 0.0;
 
 }
 DisturbanceObserverCtrl::~DisturbanceObserverCtrl() {
@@ -58,15 +59,14 @@ DisturbanceObserverCtrl::~DisturbanceObserverCtrl() {
 void DisturbanceObserverCtrl::CmdLoopCallback(const ros::TimerEvent& event){
   // /// Compute BodyRate commands using disturbance observer
   // /// From Hyuntae Kim
-  Eigen::Vector3d a_fb, a_des;
   geometric_controller_.getErrors(pos_error, vel_error);
   
   a_fb = Kpos_.asDiagonal() * pos_error + Kvel_.asDiagonal() * vel_error; //feedforward term for trajectory error
   a_dob = DisturbanceObserver(pos_error, a_fb - a_dob);
   a_des = a_fb - a_dob - g_;
-  
+
+  geometric_controller_.setFeedthrough(true);  
   geometric_controller_.setAccelerationReference(a_des);
-  
 }
 
 void DisturbanceObserverCtrl::StatusLoopCallback(const ros::TimerEvent& event){
@@ -77,6 +77,7 @@ Eigen::Vector3d DisturbanceObserverCtrl::DisturbanceObserver(Eigen::Vector3d pos
 
   Eigen::Vector3d acc_input, yq, yp, d_hat;
   double control_dt = 0.01;
+  std::cout << "acc_input: " << acc_setpoint.transpose() << std::endl;
 
   for(int i = 0; i < acc_input.size(); i++){
     //Update dob states
