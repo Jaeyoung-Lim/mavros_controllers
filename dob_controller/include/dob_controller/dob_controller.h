@@ -17,14 +17,20 @@ class DisturbanceObserverCtrl
     ros::Timer cmdloop_timer_, statusloop_timer_;
 
 
+    Eigen::Vector3d a_input, a_dob, pos_error, vel_error;
+    Eigen::Vector3d g_;
     Eigen::Vector3d a0, a1, tau;
+    Eigen::Vector3d Kpos_, Kvel_, D_;
+
+
     double a0_x, a0_y, a0_z, a1_x, a1_y, a1_z, tau_x, tau_y, tau_z;
     double dhat_max, dhat_min;
+ 
     std::vector<Eigen::Vector2d> q_, p_;
 
     void CmdLoopCallback(const ros::TimerEvent& event);
     void StatusLoopCallback(const ros::TimerEvent& event);
-    Eigen::Vector3d disturbanceobserver(Eigen::Vector3d pos_error, Eigen::Vector3d acc_setpoint);
+    Eigen::Vector3d DisturbanceObserver(Eigen::Vector3d pos_error, Eigen::Vector3d acc_setpoint);
 
     geometricCtrl geometric_controller_;
 

@@ -81,6 +81,7 @@ class geometricCtrl
     Eigen::Vector4d cmdBodyRate_; //{wx, wy, wz, Thrust}
     Eigen::Vector3d Kpos_, Kvel_, D_;
     Eigen::Vector3d a0, a1, tau;
+    Eigen::Vector3d errorPos_, errorVel_;
     double tau_x, tau_y, tau_z;
     double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
 
@@ -126,8 +127,10 @@ class geometricCtrl
     Eigen::Vector4d quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p);
     Eigen::Vector4d attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
     void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel);
+    void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel);
     void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
     void setFeedthrough(bool feed_through);
+    void setAccelerationReference(Eigen::Vector3d a_ref);
     virtual ~ geometricCtrl();
 };
 

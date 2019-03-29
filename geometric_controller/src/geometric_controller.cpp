@@ -248,7 +248,6 @@ void geometricCtrl::pubRateCommands(){
 }
 
 void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
-  Eigen::Vector3d errorPos_, errorVel_;
   Eigen::Matrix3d R_ref;
 
   errorPos_ = mavPos_ - targetPos_;
@@ -264,6 +263,12 @@ void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
   a_des = a_fb + a_ref - a_rd - g_;
   q_des = acc2quaternion(a_des, mavYaw_);
+
+  cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+}
+
+void geometricCtrl::setAccelerationReference(Eigen::Vector3d a_ref){
+  q_des = acc2quaternion(a_ref, mavYaw_);
 
   cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 }
@@ -362,6 +367,11 @@ void geometricCtrl::getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen:
   vel = mavVel_;
   angvel = mavRate_;
 
+}
+
+void geometricCtrl::getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel){
+  pos = errorPos_;
+  vel = errorVel_;
 }
 
 bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
