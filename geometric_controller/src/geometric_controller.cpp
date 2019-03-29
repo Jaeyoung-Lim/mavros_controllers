@@ -176,6 +176,10 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
       node_state = MISSION_EXECUTION;
       break;
   case MISSION_EXECUTION:
+  
+    errorPos_ = mavPos_ - targetPos_;
+    errorVel_ = mavVel_ - targetVel_;
+
     if(!feedthrough_enable_)  computeBodyRateCmd(false);
     pubReferencePose();
     pubRateCommands();
@@ -250,8 +254,6 @@ void geometricCtrl::pubRateCommands(){
 void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   Eigen::Matrix3d R_ref;
 
-  errorPos_ = mavPos_ - targetPos_;
-  errorVel_ = mavVel_ - targetVel_;
   a_ref = targetAcc_;
 
   /// Compute BodyRate commands using differential flatness

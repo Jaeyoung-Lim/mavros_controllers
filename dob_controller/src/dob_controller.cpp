@@ -62,11 +62,12 @@ void DisturbanceObserverCtrl::CmdLoopCallback(const ros::TimerEvent& event){
   geometric_controller_.getErrors(pos_error, vel_error);
   
   a_fb = Kpos_.asDiagonal() * pos_error + Kvel_.asDiagonal() * vel_error; //feedforward term for trajectory error
-  a_dob = DisturbanceObserver(pos_error, a_fb - a_dob);
+  // a_dob = DisturbanceObserver(pos_error, a_fb - a_dob);
   a_des = a_fb - a_dob - g_;
 
   geometric_controller_.setFeedthrough(true);  
   geometric_controller_.setAccelerationReference(a_des);
+
 }
 
 void DisturbanceObserverCtrl::StatusLoopCallback(const ros::TimerEvent& event){
@@ -85,7 +86,6 @@ Eigen::Vector3d DisturbanceObserverCtrl::DisturbanceObserver(Eigen::Vector3d pos
     p_.at(i)(1) = (-a0(i) * control_dt / std::pow(tau(i),2)) * p_.at(i)(0) + (1 - a1(i) * control_dt / tau(i)) *p_.at(i)(1) + control_dt * acc_setpoint(i);
     q_.at(i)(0) = q_.at(i)(0) + control_dt * q_.at(i)(1);
     q_.at(i)(1) = (-a0(i)/std::pow(tau(i), 2)) * control_dt * q_.at(i)(0) + (1 - a1(i) * control_dt / tau(i)) * q_.at(i)(1) + control_dt * pos_error(i);
-
     //Calculate outputs
     yp(i) = (a0(i) / pow(tau(i), 2)) * p_.at(i)(0);
     yq(i) = (-a1(i)*a0(i) / std::pow(tau(i), 3))*q_.at(i)(0) - (std::pow(a0(i),2) / std::pow(tau(i), 4)) * q_.at(i)(1) + a0(i) / pow(tau(i),2) * pos_error(i);
