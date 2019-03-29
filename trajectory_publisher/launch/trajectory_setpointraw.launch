@@ -6,7 +6,7 @@
   <arg name="tgt_component" default="1" />
   <arg name="command_input" default="2" />
   <arg name="gazebo_simulation" default="true" />
-  <arg name="visualization" default="true"/>
+  <arg name="visualization" default="false"/>
   <arg name="log_output" default="screen" />
   <arg name="fcu_protocol" default="v2.0" />
   <arg name="respawn_mavros" default="false" />
@@ -20,7 +20,6 @@
   </node>
 ?>
 
-  
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
         <param name="trajectory_type" value="1" />
         <param name="shape_omega" value="1.2" />
