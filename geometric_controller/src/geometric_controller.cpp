@@ -264,14 +264,13 @@ void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   if(a_fb.norm() > max_fb_acc_) a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb; //Clip acceleration if reference is too large
   a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
   a_des = a_fb + a_ref - a_rd - g_;
-  q_des = acc2quaternion(a_des, mavYaw_);
 
-  cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+  setDesiredAcceleration(a_des); //Pass desired acceleration to geometric attitude controller
 }
 
-void geometricCtrl::setAccelerationReference(Eigen::Vector3d acc_ref){
-  q_des = acc2quaternion(acc_ref, mavYaw_);
-  cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+void geometricCtrl::setDesiredAcceleration(Eigen::Vector3d acc_desired){
+  q_des = acc2quaternion(acc_desired, mavYaw_);
+  cmdBodyRate_ = attcontroller(q_des, acc_desired, mavAtt_); //Calculate BodyRate
 }
 
 Eigen::Vector4d geometricCtrl::quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p) {
@@ -359,6 +358,7 @@ Eigen::Vector4d geometricCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Ve
   rotmat = quat2RotMatrix(mavAtt_);
   zb = rotmat.col(2);
   ratecmd(3) = std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb))); //Calculate thrust
+
   return ratecmd;
 }
 

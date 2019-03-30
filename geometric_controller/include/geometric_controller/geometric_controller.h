@@ -130,7 +130,7 @@ class geometricCtrl
     void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel);
     void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
     void setFeedthrough(bool feed_through);
-    void setAccelerationReference(Eigen::Vector3d a_ref);
+    void setDesiredAcceleration(Eigen::Vector3d acc_desired);
     virtual ~ geometricCtrl();
 };
 
