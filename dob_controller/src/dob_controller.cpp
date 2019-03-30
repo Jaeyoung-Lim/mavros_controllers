@@ -38,6 +38,7 @@ DisturbanceObserverCtrl::DisturbanceObserverCtrl(const ros::NodeHandle& nh, cons
   g_ << 0.0, 0.0, -9.8;
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
   Kvel_ << -Kvel_x_, -Kvel_z_, -Kvel_z_;
+  tau << tau_x, tau_y, tau_z;
 
   q_.resize(3);
   p_.resize(3);
@@ -62,11 +63,11 @@ void DisturbanceObserverCtrl::CmdLoopCallback(const ros::TimerEvent& event){
   geometric_controller_.getErrors(pos_error, vel_error);
   
   a_fb = Kpos_.asDiagonal() * pos_error + Kvel_.asDiagonal() * vel_error; //feedforward term for trajectory error
-  // a_dob = DisturbanceObserver(pos_error, a_fb - a_dob);
+  a_dob = DisturbanceObserver(pos_error, a_fb - a_dob);
   a_des = a_fb - a_dob - g_;
 
-  geometric_controller_.setFeedthrough(true);  
-  geometric_controller_.setAccelerationReference(a_des);
+  geometric_controller_.setFeedthrough(true);
+  geometric_controller_.setDesiredAcceleration(a_des);
 
 }
 
@@ -78,7 +79,6 @@ Eigen::Vector3d DisturbanceObserverCtrl::DisturbanceObserver(Eigen::Vector3d pos
 
   Eigen::Vector3d acc_input, yq, yp, d_hat;
   double control_dt = 0.01;
-  std::cout << "acc_input: " << acc_setpoint.transpose() << std::endl;
 
   for(int i = 0; i < acc_input.size(); i++){
     //Update dob states
