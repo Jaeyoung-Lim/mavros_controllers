@@ -96,6 +96,20 @@ Trajectory publisher publishes continous trajectories to the trajectory_controll
     - /mavros/local_position/pose ( [geometry_msgs/PoseStamped](http://docs.ros.org/kinetic/api/geometry_msgs/html/msg/PoseStamped.html) )
     - /mavros/local_position/velocity( [geometry_msgs/TwistStamped](http://docs.ros.org/api/geometry_msgs/html/msg/TwistStamped.html) )
 
+## Citation
+In case you use this work as an academic context, please cite as the following.
+```
+@misc{jaeyoung_lim_2019_2619313,
+  author       = {Jaeyoung Lim},
+  title        = {{mavros_controllers - Aggressive trajectory 
+                   tracking using mavros for PX4 enabled vehicles}},
+  month        = mar,
+  year         = 2019,
+  doi          = {10.5281/zenodo.2619313},
+  url          = {https://doi.org/10.5281/zenodo.2619313}
+}
+```
+
 ## References
 [1] Lee, Taeyoung, Melvin Leoky, and N. Harris McClamroch. "Geometric tracking control of a quadrotor UAV on SE (3)." Decision and Control (CDC), 2010 49th IEEE Conference on. IEEE, 2010.
 
