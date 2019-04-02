@@ -15,9 +15,11 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   flatreferencePub_ = nh_.advertise<controller_msgs::FlatTarget>("reference/flatsetpoint", 1);
   rawreferencePub_ = nh_.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);
+
   motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
   mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &trajectoryPublisher::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
   mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity", 1, &trajectoryPublisher::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
+	mavhomeposSub_ = nh_.subscribe("/mavros/home_position/home", 1, &trajectoryPublisher::mavhomeposCallback, this, ros::TransportHints().tcpNoDelay());
 
   trajloop_timer_ = nh_.createTimer(ros::Duration(0.1), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
@@ -34,6 +36,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
   nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
   nh_.param<int>("/trajectory_publisher/reference_type", pubreference_type_, 2);
+  nh_.param<int>("/trajectory_publisher/shape_type", shape_type_, 0);
 
   inputs_.resize(num_primitives_);
 
@@ -57,7 +60,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   else {//Shape trajectories
     num_primitives_ = 1;
 //    motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(trajectory_type_));
-    motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(0));
+    motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(shape_type_));
     primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset", 1));
   }
 
@@ -67,6 +70,8 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   shape_axis_ << 0.0, 0.0, 1.0;
   motion_selector_ = 0;
 
+	p_home_ << 0.0, 0.0, 0.0;
+
   initializePrimitives(trajectory_type_);
 }
 
@@ -74,7 +79,7 @@ void trajectoryPublisher::updateReference() {
   curr_time_ = ros::Time::now();
   trigger_time_ = (curr_time_ - start_time_).toSec();
 
-  p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
+  p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_) + p_home_;
   v_targ = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
   if(pubreference_type_!=0) 
 		a_targ = motionPrimitives_.at(motion_selector_)->getAcceleration(trigger_time_);
@@ -219,6 +224,13 @@ void trajectoryPublisher::mavposeCallback(const geometry_msgs::PoseStamped& msg)
   p_mav_(2) = msg.pose.position.z;
   updatePrimitives();
 
+}
+
+void trajectoryPublisher::mavhomeposCallback(const mavros_msgs::HomePosition& msg) {
+
+	p_home_(0) = msg.position.x;
+	p_home_(1) = msg.position.y;
+	p_home_(2) = msg.position.z;
 }
 
 void trajectoryPublisher::mavtwistCallback(const geometry_msgs::TwistStamped& msg) {

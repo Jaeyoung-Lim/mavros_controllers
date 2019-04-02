@@ -1,6 +1,6 @@
 <launch>
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
-        <param name="trajectory_type" value="1" />
+        <param name="trajectory_type" value="0" />
         <param name="shape_omega" value="1.2" />
         <param name="initpos_z" value="2.0" />
         <param name="max_acc" value="10.0" />

@@ -17,6 +17,7 @@
 #include <std_srvs/SetBool.h>
 #include <nav_msgs/Path.h>
 #include <mavros_msgs/PositionTarget.h>
+#include <mavros_msgs/HomePosition.h>
 #include <mav_planning_msgs/PolynomialTrajectory4D.h>
 #include "controller_msgs/FlatTarget.h"
 #include "trajectory_publisher/trajectory.h"
@@ -38,9 +39,12 @@ private:
   ros::Publisher flatreferencePub_;
   ros::Publisher rawreferencePub_;
   std::vector<ros::Publisher> primitivePub_;
+
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
   ros::Subscriber mavtwistSub_;
+	ros::Subscriber mavhomeposSub_;
+
   ros::ServiceServer trajtriggerServ_;
   ros::Timer trajloop_timer_;
   ros::Timer refloop_timer_;
@@ -53,6 +57,7 @@ private:
   Eigen::Vector3d p_targ, v_targ, a_targ;
   Eigen::Vector3d p_mav_, v_mav_;
   Eigen::Vector3d shape_origin_, shape_axis_;
+	Eigen::Vector3d p_home_;
   double shape_omega_ = 0;
   double theta_ = 0.0;
   double controlUpdate_dt_;
@@ -63,6 +68,7 @@ private:
   int pubreference_type_;
   int num_primitives_;
   int motion_selector_;
+	int shape_type_; 
 
   std::vector<std::shared_ptr<trajectory>> motionPrimitives_;
   std::vector<Eigen::Vector3d> inputs_;
@@ -85,6 +91,7 @@ public:
   void motionselectorCallback(const std_msgs::Int32& selector);
   void mavposeCallback(const geometry_msgs::PoseStamped& msg);
   void mavtwistCallback(const geometry_msgs::TwistStamped& msg);
+	void mavhomeposCallback(const mavros_msgs::HomePosition& msg);
 
   };
 
