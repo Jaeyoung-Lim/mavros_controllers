@@ -331,12 +331,14 @@ Eigen::Vector4d geometricCtrl::rot2Quaternion(Eigen::Matrix3d R){
 
 Eigen::Vector4d geometricCtrl::acc2quaternion(Eigen::Vector3d vector_acc, double yaw) {
   Eigen::Vector4d quat;
-  Eigen::Vector3d zb_des, yb_des, xb_des, yc;
+  Eigen::Vector3d zb_des, yb_des, xb_des, proj_xb_des;
   Eigen::Matrix3d rotmat;
-  yc = Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ())*Eigen::Vector3d::UnitY();
+
+  proj_xb_des << std::cos(yaw), std::sin(yaw), 0.0;
   zb_des = vector_acc / vector_acc.norm();
-  xb_des = yc.cross(zb_des) / ( yc.cross(zb_des) ).norm();
-	yb_des = zb_des.cross(xb_des) / (zb_des.cross(xb_des)).norm();
+  yb_des = zb_des.cross(proj_xb_des) / (zb_des.cross(proj_xb_des)).norm();
+  xb_des = yb_des.cross(zb_des) / ( yb_des.cross(zb_des) ).norm();
+
   rotmat << xb_des(0), yb_des(0), zb_des(0),
             xb_des(1), yb_des(1), zb_des(1),
             xb_des(2), yb_des(2), zb_des(2);
