@@ -44,10 +44,10 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<double>("/geometric_controller/normalizedthrust_constant", norm_thrust_const_, 0.05); // 1 / max acceleration
   nh_.param<double>("/geometric_controller/Kp_x", Kpos_x_, 8.0);
   nh_.param<double>("/geometric_controller/Kp_y", Kpos_y_, 8.0);
-  nh_.param<double>("/geometric_controller/Kp_z", Kpos_z_, 30.0);
-  nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 2.0);
-  nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 2.0);
-  nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 10.0);
+  nh_.param<double>("/geometric_controller/Kp_z", Kpos_z_, 10.0);
+  nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 1.5);
+  nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 1.5);
+  nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 3.3);
 
   targetPos_ << 0.0, 0.0, 2.0; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
