@@ -35,6 +35,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<string>("/geometric_controller/mavname", mav_name_, "iris");
   nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
   nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true);
+  nh_.param<bool>("/geometric_controller/velocity_yaw", velocity_yaw_, false);
   nh_.param<double>("/geometric_controller/max_acc", max_fb_acc_, 7.0);
   nh_.param<double>("/geometric_controller/yaw_heading", mavYaw_, 0.0);
   nh_.param<double>("/geometric_controller/drag_dx", dx_, 0.0);
@@ -334,7 +335,8 @@ Eigen::Vector4d geometricCtrl::acc2quaternion(Eigen::Vector3d vector_acc, double
   Eigen::Vector3d zb_des, yb_des, xb_des, proj_xb_des;
   Eigen::Matrix3d rotmat;
 
-  proj_xb_des << std::cos(yaw), std::sin(yaw), 0.0;
+  if(velocity_yaw_) proj_xb_des = targetVel_.normalized();
+  else proj_xb_des << std::cos(yaw), std::sin(yaw), 0.0;
   zb_des = vector_acc / vector_acc.norm();
   yb_des = zb_des.cross(proj_xb_des) / (zb_des.cross(proj_xb_des)).norm();
   xb_des = yb_des.cross(zb_des) / ( yb_des.cross(zb_des) ).norm();
