@@ -13,6 +13,7 @@
 #include <sstream>
 
 #include <Eigen/Dense>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -45,6 +46,7 @@ class geometricCtrl
     ros::Subscriber mavstateSub_;
     ros::Subscriber mavposeSub_, gzmavposeSub_;
     ros::Subscriber mavtwistSub_;
+    ros::Subscriber yawreferenceSub_;
     ros::Publisher rotorVelPub_, angularVelPub_, target_pose_pub_;
     ros::Publisher referencePosePub_;
     ros::ServiceClient arming_client_;
@@ -91,6 +93,7 @@ class geometricCtrl
     void odomCallback(const nav_msgs::OdometryConstPtr& odomMsg);
     void targetCallback(const geometry_msgs::TwistStamped& msg);
     void flattargetCallback(const controller_msgs::FlatTarget& msg);
+    void yawtargetCallback(const std_msgs::Float32& msg);
     void multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTrajectory& msg);
     void keyboardCallback(const geometry_msgs::Twist& msg);
     void cmdloopCallback(const ros::TimerEvent& event);
