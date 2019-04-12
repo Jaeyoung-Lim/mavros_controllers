@@ -59,7 +59,6 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   }
   else {//Shape trajectories
     num_primitives_ = 1;
-//    motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(trajectory_type_));
     motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(shape_type_));
     primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset", 1));
   }
