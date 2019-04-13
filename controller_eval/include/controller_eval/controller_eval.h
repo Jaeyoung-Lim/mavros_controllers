@@ -30,6 +30,8 @@ class ControllerEvaluator
     Eigen::Vector3d gt_mavVel_;
     Eigen::Vector3d gt_mavRate_;
     Eigen::Vector4d gt_mavAtt_;
+    Eigen::Vector3d error_pos_;
+    Eigen::Vector3d error_vel_;
 
     void mavposeCallback(const geometry_msgs::PoseStamped& msg);
     void mavtwistCallback(const geometry_msgs::TwistStamped& msg);

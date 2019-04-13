@@ -25,6 +25,9 @@ void ControllerEvaluator::mavposeCallback(const geometry_msgs::PoseStamped& msg)
   mavAtt_(2) = msg.pose.orientation.y;
   mavAtt_(3) = msg.pose.orientation.z;
 
+  error_pos_ = mavPos_ - gt_mavPos_;
+  error_vel_ = mavVel_ - gt_mavVel_;
+
 }
 
 void ControllerEvaluator::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
