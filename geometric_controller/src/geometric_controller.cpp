@@ -28,6 +28,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   angularVelPub_ = nh_.advertise<mavros_msgs::AttitudeTarget>("command/bodyrate_command", 1);
   referencePosePub_ = nh_.advertise<geometry_msgs::PoseStamped>("reference/pose", 1);
   target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
+  posehistoryPub_ = nh_.advertise<nav_msgs::Path>("/geometric_controller/path", 10);
 
   arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
@@ -50,6 +51,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 1.5);
   nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 1.5);
   nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 3.3);
+  nh_.param<int>("/geometric_controller/posehistory_window", posehistory_window_, 200);
 
   targetPos_ << 0.0, 0.0, 2.0; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
@@ -59,6 +61,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   D_ << dx_, dy_, dz_;
 
   tau << tau_x, tau_y, tau_z;
+
 }
 geometricCtrl::~geometricCtrl() {
   //Destructor
@@ -189,6 +192,8 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
     if(!feedthrough_enable_)  computeBodyRateCmd(false);
     pubReferencePose();
     pubRateCommands();
+    appendPoseHistory();
+    pubPoseHistory();
     break;
   case LANDING: {
     geometry_msgs::PoseStamped landingmsg;
@@ -256,6 +261,36 @@ void geometricCtrl::pubRateCommands(){
   angularVelMsg_.thrust = cmdBodyRate_(3);
   angularVelPub_.publish(angularVelMsg_);
 }
+
+void geometricCtrl::pubPoseHistory(){
+  nav_msgs::Path msg;
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "map";
+  msg.poses = posehistory_vector_;
+  posehistoryPub_.publish(msg);
+}
+
+void geometricCtrl::appendPoseHistory(){
+  posehistory_vector_.insert(posehistory_vector_.begin(), vector3d2PoseStampedMsg(mavPos_, mavAtt_));
+  if(posehistory_vector_.size() > posehistory_window_){
+    posehistory_vector_.pop_back();
+  }
+}
+
+geometry_msgs::PoseStamped geometricCtrl::vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation){
+  geometry_msgs::PoseStamped encode_msg;
+  encode_msg.header.stamp = ros::Time::now();
+  encode_msg.header.frame_id = "map";
+  encode_msg.pose.orientation.w = orientation(0);
+  encode_msg.pose.orientation.x = orientation(1);
+  encode_msg.pose.orientation.y = orientation(2);
+  encode_msg.pose.orientation.z = orientation(3);
+  encode_msg.pose.position.x = position(0);
+  encode_msg.pose.position.y = position(1);
+  encode_msg.pose.position.z = position(2);
+  return encode_msg;
+}
+
 
 void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
   Eigen::Matrix3d R_ref;
