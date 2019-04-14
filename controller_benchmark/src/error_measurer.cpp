@@ -1,4 +1,4 @@
-#include "hilbert_evaluator/error_measurer.h"
+#include "controller_benchmark/error_measurer.h"
 
 ErrorMeasurer::ErrorMeasurer() :
   totalsamples_(0),
@@ -26,9 +26,9 @@ void ErrorMeasurer::Add(double error){
     sample_error_[windowsamples_] = error;
 
   } else {
-    double &oldest_error = sample_precision_[windowsamples_ % N];
+    double &oldest_error = sample_error_[windowsamples_ % N];
 
-    sum_precision_ = sum_error_ - oldest_error + error;
+    sum_error_ = sum_error_ - oldest_error + error;
     oldest_error = error;
   }
   windowsamples_++;
@@ -41,7 +41,7 @@ void ErrorMeasurer::GetMeanError(double &meanerror){
   else meanerror = sum_error_ / windowsamples_;
 }
 
-int RocAccumulator::GetWindowSamples(){
+int ErrorMeasurer::GetWindowSamples(){
   return windowsamples_;
 
 }

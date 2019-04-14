@@ -9,6 +9,7 @@
 #include <gazebo_msgs/ModelStates.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <controller_benchmark/error_measurer.h>
 
 class ControllerEvaluator
 {
@@ -32,6 +33,8 @@ class ControllerEvaluator
     Eigen::Vector4d gt_mavAtt_;
     Eigen::Vector3d error_pos_;
     Eigen::Vector3d error_vel_;
+
+    std::vector<ErrorMeasurer> error_measurer_;
 
     void mavposeCallback(const geometry_msgs::PoseStamped& msg);
     void mavtwistCallback(const geometry_msgs::TwistStamped& msg);

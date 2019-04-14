@@ -6,7 +6,6 @@
 
 #include <ros/ros.h>
 #include <ros/subscribe_options.h>
-#include "hilbert_mapper/hilbert_mapper.h"
 #include <Eigen/Dense>
 
 class ErrorMeasurer

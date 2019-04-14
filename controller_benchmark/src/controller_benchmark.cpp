@@ -1,6 +1,6 @@
 //  July/2018, ETHZ, Jaeyoung Lim, jalim@student.ethz.ch
 
-#include "controller_eval/controller_eval.h"
+#include "controller_benchmark/controller_benchmark.h"
 
 //Constructor
 ControllerEvaluator::ControllerEvaluator(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private):
@@ -11,6 +11,7 @@ ControllerEvaluator::ControllerEvaluator(const ros::NodeHandle& nh, const ros::N
   mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity_local", 1, &ControllerEvaluator::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
   gzmavposeSub_ = nh_.subscribe("/gazebo/model_states", 1, &ControllerEvaluator::gzmavposeCallback, this, ros::TransportHints().tcpNoDelay());	
 
+  error_measurer_.resize(3);
 }
 ControllerEvaluator::~ControllerEvaluator() {
   //Destructor
@@ -28,6 +29,11 @@ void ControllerEvaluator::mavposeCallback(const geometry_msgs::PoseStamped& msg)
   error_pos_ = mavPos_ - gt_mavPos_;
   error_vel_ = mavVel_ - gt_mavVel_;
 
+  for(int i = 0; i < 3; i++){
+    error_measurer_[i].Add(error_pos_(i));
+    double error;
+    error_measurer_[i].GetMeanError(error);
+  }
 }
 
 void ControllerEvaluator::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
