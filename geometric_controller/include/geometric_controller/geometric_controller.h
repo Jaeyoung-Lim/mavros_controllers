@@ -49,6 +49,7 @@ class geometricCtrl
     ros::Subscriber yawreferenceSub_;
     ros::Publisher rotorVelPub_, angularVelPub_, target_pose_pub_;
     ros::Publisher referencePosePub_;
+    ros::Publisher posehistoryPub_;
     ros::ServiceClient arming_client_;
     ros::ServiceClient set_mode_client_;
     ros::ServiceServer ctrltriggerServ_;
@@ -74,6 +75,7 @@ class geometricCtrl
     mavros_msgs::CommandBool arm_cmd_;
     mavros_msgs::AttitudeTarget angularVelMsg_;
     geometry_msgs::PoseStamped referencePoseMsg_;
+    std::vector<geometry_msgs::PoseStamped> posehistory_vector_;
 
     Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
     Eigen::Vector3d mavPos_, mavVel_, mavRate_;
@@ -86,10 +88,13 @@ class geometricCtrl
     Eigen::Vector3d errorPos_, errorVel_;
     double tau_x, tau_y, tau_z;
     double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
+    int posehistory_window_;
 
     void pubMotorCommands();
     void pubRateCommands();
     void pubReferencePose();
+    void pubPoseHistory();
+    void appendPoseHistory();
     void odomCallback(const nav_msgs::OdometryConstPtr& odomMsg);
     void targetCallback(const geometry_msgs::TwistStamped& msg);
     void flattargetCallback(const controller_msgs::FlatTarget& msg);
