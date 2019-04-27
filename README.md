@@ -1,5 +1,5 @@
 # mavros_controllers
-[![Build Status](https://travis-ci.org/Jaeyoung-Lim/mavros_controllers.png?branch=master)](https://travis-ci.org/Jaeyoung-Lim/mavros_controllers)
+[![Build Status](https://travis-ci.org/Jaeyoung-Lim/mavros_controllers.png?branch=master)](https://travis-ci.org/Jaeyoung-Lim/mavros_controllers) [![DOI](https://zenodo.org/badge/140596755.svg)](https://zenodo.org/badge/latestdoi/140596755)
 
 Controllers for controlling MAVs using the [mavros](https://github.com/mavlink/mavros) package in OFFBOARD mode.
 
@@ -105,8 +105,8 @@ In case you use this work as an academic context, please cite as the following.
                    tracking using mavros for PX4 enabled vehicles}},
   month        = mar,
   year         = 2019,
-  doi          = {10.5281/zenodo.2619313},
-  url          = {https://doi.org/10.5281/zenodo.2619313}
+  doi          = {10.5281/zenodo.2652888},
+  url          = {https://doi.org/10.5281/zenodo.2652888}
 }
 ```
 
