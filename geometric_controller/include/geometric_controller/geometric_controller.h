@@ -30,6 +30,8 @@
 #include <std_srvs/SetBool.h>
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
+#include <mav_msgs/conversions.h>
+
 
 #define MODE_ROTORTHRUST  1
 #define MODE_BODYRATE     2
@@ -92,6 +94,7 @@ class geometricCtrl
     mavros_msgs::AttitudeTarget angularVelMsg_;
     geometry_msgs::PoseStamped referencePoseMsg_;
     std::vector<geometry_msgs::PoseStamped> posehistory_vector_;
+    mav_msgs::EigenTrajectoryPointVector reference_trajectory_;
     MAV_STATE companion_state_ = MAV_STATE::MAV_STATE_ACTIVE;
 
     Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
@@ -154,6 +157,7 @@ class geometricCtrl
     Eigen::Vector4d attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
     void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel);
     void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel);
+    void getTargetStatesFromTrajectory(double time);
     void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
     void setFeedthrough(bool feed_through);
     void setDesiredAcceleration(Eigen::Vector3d acc_desired);

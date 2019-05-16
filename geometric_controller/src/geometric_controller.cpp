@@ -129,7 +129,9 @@ void geometricCtrl::yawtargetCallback(const std_msgs::Float32& msg) {
 }
 
 void geometricCtrl::multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTrajectory& msg) {
-
+  
+  mav_msgs::eigenTrajectoryPointVectorFromMsg(msg, &reference_trajectory_);
+  
   trajectory_msgs::MultiDOFJointTrajectoryPoint pt = msg.points[0];
   reference_request_last_ = reference_request_now_;
 
