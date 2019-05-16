@@ -157,7 +157,7 @@ class geometricCtrl
     Eigen::Vector4d attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
     void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel);
     void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel);
-    void getTargetStatesFromTrajectory(double time);
+    void getTargetStatesFromTrajectory();
     void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
     void setFeedthrough(bool feed_through);
     void setDesiredAcceleration(Eigen::Vector3d acc_desired);

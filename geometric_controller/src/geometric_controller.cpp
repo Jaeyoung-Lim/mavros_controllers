@@ -61,6 +61,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   D_ << dx_, dy_, dz_;
 
   tau << tau_x, tau_y, tau_z;
+  reference_trajectory_.clear();
 
 }
 geometricCtrl::~geometricCtrl() {
@@ -187,6 +188,10 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
       node_state = MISSION_EXECUTION;
       break;
   case MISSION_EXECUTION:
+
+    if(!reference_trajectory_.empty()){
+      getTargetStatesFromTrajectory();
+    }
   
     errorPos_ = mavPos_ - targetPos_;
     errorVel_ = mavVel_ - targetVel_;
@@ -449,4 +454,22 @@ void geometricCtrl::setBodyRateCommand(Eigen::Vector4d bodyrate_command){
 void geometricCtrl::setFeedthrough(bool feed_through){
   feedthrough_enable_ = feed_through;
 
+}
+
+void geometricCtrl::getTargetStatesFromTrajectory(){
+
+  double trajectory_time = (ros::Time::now() - reference_request_now_).toSec();
+
+  for(size_t i = 0; i < reference_trajectory_.size(); i++){
+    if(trajectory_time > reference_trajectory_[i].time_from_start_ns){
+      targetPos_ = reference_trajectory_[i].position_W;
+      targetVel_ = reference_trajectory_[i].velocity_W;
+      targetAcc_ = reference_trajectory_[i].acceleration_W;
+      targetJerk_ << 0.0, 0.0, 0.0;
+      targetSnap_ << 0.0, 0.0, 0.0;
+      break;
+    }
+  }
+  // Clear trajectory vector if trajectory execution has ended
+  reference_trajectory_.clear();
 }
