@@ -29,7 +29,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   referencePosePub_ = nh_.advertise<geometry_msgs::PoseStamped>("reference/pose", 1);
   target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
   posehistoryPub_ = nh_.advertise<nav_msgs::Path>("/geometric_controller/path", 10);
-
+  systemstatusPub_ = nh_.advertise<mavros_msgs::CompanionProcessStatus>("/mavros/companion_process/status", 1);
   arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
   land_service_ = nh_.advertiseService("land", &geometricCtrl::landCallback, this);
@@ -236,6 +236,7 @@ void geometricCtrl::statusloopCallback(const ros::TimerEvent& event){
       }
     }
   }
+  pubSystemStatus();
 }
 
 void geometricCtrl::pubReferencePose(){
@@ -268,6 +269,16 @@ void geometricCtrl::pubPoseHistory(){
   msg.header.frame_id = "map";
   msg.poses = posehistory_vector_;
   posehistoryPub_.publish(msg);
+}
+
+void geometricCtrl::pubSystemStatus() {
+  mavros_msgs::CompanionProcessStatus msg;
+
+  msg.header.stamp = ros::Time::now();
+  msg.component = 196;  // MAV_COMPONENT_ID_AVOIDANCE
+  msg.state = (int)companion_state_;
+
+  systemstatusPub_.publish(msg);
 }
 
 void geometricCtrl::appendPoseHistory(){
