@@ -34,24 +34,24 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
   land_service_ = nh_.advertiseService("land", &geometricCtrl::landCallback, this);
 
-  nh_.param<string>("/geometric_controller/mavname", mav_name_, "iris");
-  nh_.param<int>("/geometric_controller/ctrl_mode", ctrl_mode_, MODE_BODYRATE);
-  nh_.param<bool>("/geometric_controller/enable_sim", sim_enable_, true);
-  nh_.param<bool>("/geometric_controller/velocity_yaw", velocity_yaw_, false);
-  nh_.param<double>("/geometric_controller/max_acc", max_fb_acc_, 7.0);
-  nh_.param<double>("/geometric_controller/yaw_heading", mavYaw_, 0.0);
-  nh_.param<double>("/geometric_controller/drag_dx", dx_, 0.0);
-  nh_.param<double>("/geometric_controller/drag_dy", dy_, 0.0);
-  nh_.param<double>("/geometric_controller/drag_dz", dz_, 0.0);
-  nh_.param<double>("/geometric_controller/attctrl_constant", attctrl_tau_, 0.1);
-  nh_.param<double>("/geometric_controller/normalizedthrust_constant", norm_thrust_const_, 0.05); // 1 / max acceleration
-  nh_.param<double>("/geometric_controller/Kp_x", Kpos_x_, 8.0);
-  nh_.param<double>("/geometric_controller/Kp_y", Kpos_y_, 8.0);
-  nh_.param<double>("/geometric_controller/Kp_z", Kpos_z_, 10.0);
-  nh_.param<double>("/geometric_controller/Kv_x", Kvel_x_, 1.5);
-  nh_.param<double>("/geometric_controller/Kv_y", Kvel_y_, 1.5);
-  nh_.param<double>("/geometric_controller/Kv_z", Kvel_z_, 3.3);
-  nh_.param<int>("/geometric_controller/posehistory_window", posehistory_window_, 200);
+  nh_private_.param<string>("mavname", mav_name_, "iris");
+  nh_private_.param<int>("ctrl_mode", ctrl_mode_, MODE_BODYRATE);
+  nh_private_.param<bool>("enable_sim", sim_enable_, true);
+  nh_private_.param<bool>("velocity_yaw", velocity_yaw_, false);
+  nh_private_.param<double>("max_acc", max_fb_acc_, 7.0);
+  nh_private_.param<double>("yaw_heading", mavYaw_, 0.0);
+  nh_private_.param<double>("drag_dx", dx_, 0.0);
+  nh_private_.param<double>("drag_dy", dy_, 0.0);
+  nh_private_.param<double>("drag_dz", dz_, 0.0);
+  nh_private_.param<double>("attctrl_constant", attctrl_tau_, 0.1);
+  nh_private_.param<double>("normalizedthrust_constant", norm_thrust_const_, 0.05); // 1 / max acceleration
+  nh_private_.param<double>("Kp_x", Kpos_x_, 8.0);
+  nh_private_.param<double>("Kp_y", Kpos_y_, 8.0);
+  nh_private_.param<double>("Kp_z", Kpos_z_, 10.0);
+  nh_private_.param<double>("Kv_x", Kvel_x_, 1.5);
+  nh_private_.param<double>("Kv_y", Kvel_y_, 1.5);
+  nh_private_.param<double>("Kv_z", Kvel_z_, 3.3);
+  nh_private_.param<int>("posehistory_window", posehistory_window_, 200);
 
   targetPos_ << 0.0, 0.0, 2.0; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
