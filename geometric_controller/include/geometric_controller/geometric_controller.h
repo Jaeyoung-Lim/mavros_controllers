@@ -24,6 +24,8 @@
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/AttitudeTarget.h>
+#include <mavros_msgs/CompanionProcessStatus.h>
+
 #include <controller_msgs/FlatTarget.h>
 #include <std_srvs/SetBool.h>
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
@@ -35,6 +37,19 @@
 
 using namespace std;
 using namespace Eigen;
+
+enum class MAV_STATE {
+  MAV_STATE_UNINIT,
+  MAV_STATE_BOOT,
+  MAV_STATE_CALIBRATIN,
+  MAV_STATE_STANDBY,
+  MAV_STATE_ACTIVE,
+  MAV_STATE_CRITICAL,
+  MAV_STATE_EMERGENCY,
+  MAV_STATE_POWEROFF,
+  MAV_STATE_FLIGHT_TERMINATION,
+};
+
 class geometricCtrl
 {
   private:
@@ -50,6 +65,7 @@ class geometricCtrl
     ros::Publisher rotorVelPub_, angularVelPub_, target_pose_pub_;
     ros::Publisher referencePosePub_;
     ros::Publisher posehistoryPub_;
+    ros::Publisher systemstatusPub_;
     ros::ServiceClient arming_client_;
     ros::ServiceClient set_mode_client_;
     ros::ServiceServer ctrltriggerServ_;
@@ -76,6 +92,7 @@ class geometricCtrl
     mavros_msgs::AttitudeTarget angularVelMsg_;
     geometry_msgs::PoseStamped referencePoseMsg_;
     std::vector<geometry_msgs::PoseStamped> posehistory_vector_;
+    MAV_STATE companion_state_ = MAV_STATE::MAV_STATE_ACTIVE;
 
     Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
     Eigen::Vector3d mavPos_, mavVel_, mavRate_;
@@ -94,6 +111,7 @@ class geometricCtrl
     void pubRateCommands();
     void pubReferencePose();
     void pubPoseHistory();
+    void pubSystemStatus();
     void appendPoseHistory();
     void odomCallback(const nav_msgs::OdometryConstPtr& odomMsg);
     void targetCallback(const geometry_msgs::TwistStamped& msg);
