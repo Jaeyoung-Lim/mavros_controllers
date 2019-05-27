@@ -2,7 +2,7 @@
   <arg name="mav_name" default="iris_depth_camera_3"/>
   <arg name="gazebo_simulation" default="true" />
   <arg name="visualization" default="true"/>
-  <arg name="frame_id" default="local_origin" />
+  <arg name="frame_id" default="map" />
   <arg name="command_input" default="2" />
   <arg name="world_file_name"    default="simple_obstacle" />
   <arg name="world_path" default="$(find avoidance)/sim/worlds/$(arg world_file_name).world" />
@@ -11,7 +11,7 @@
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find avoidance)/sim/models"/>   
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find avoidance)/sim/models"/>
 
-  <node pkg="geometric_controller" type="geometric_controller_node" name="geometric_controller" output="screen">
+  <!-- <node pkg="geometric_controller" type="geometric_controller_node" name="geometric_controller" output="screen">
   		<param name="mav_name" type="string" value="$(arg mav_name)" />
           <remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
           <param name="ctrl_mode" value="$(arg command_input)" />
@@ -28,7 +28,15 @@
         <param name="Kpos_y" value="8.0" />
         <param name="Kpos_z" value="30.0" />
         <param name="reference_type" value="2" />
-  </node>
+  </node> -->
+    <!-- Define a static transform from a camera internal frame to the fcu for every camera used -->
+    <node pkg="tf" type="static_transform_publisher" name="tf_front_camera"
+            args="0 0 0 -1.57 0 -1.57 fcu front_camera_link 10"/>
+    <node pkg="tf" type="static_transform_publisher" name="tf_right_camera"
+            args="0 0 0 -3.14 0 -1.57 fcu right_camera_link 10"/>
+    <node pkg="tf" type="static_transform_publisher" name="tf_left_camera"
+            args="0 0 0 0 0 -1.57 fcu left_camera_link 10"/>
+
 
   <include file="$(find avoidance)/launch/avoidance_sitl_mavros.launch" >
       <arg name="model" value="$(arg mav_name)"/>
@@ -41,8 +49,9 @@
   </include>
   <group ns="$(arg mav_name)">
     <!-- Transforms -->
-    <node pkg="tf" type="static_transform_publisher" name="world_odom_broadcaster" args="0 0 0 0 0 0 1 world odom 100" />
+    <node pkg="tf" type="static_transform_publisher" name="world_odom_broadcaster" args="0 0 0 0 0 0 1 world map 100" />
   </group>
+  <node pkg="tf" type="static_transform_publisher" name="world_odom_broadcaster2" args="0 0 0 0 0 0 1 world local_origin 100" />
 
   <group if="$(arg visualization)">
       <node type="rviz" name="rviz" pkg="rviz" args="-d $(find geometric_controller)/launch/config_file.rviz" />
