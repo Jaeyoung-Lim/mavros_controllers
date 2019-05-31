@@ -16,14 +16,17 @@ The repository contains controllers for controlling MAVs using the mavros packag
 
 ## Getting Started
 ### Install PX4 SITL(Only to Simulate)
-Follow the instructions as shown in the [PX4 Documentation](http://dev.px4.io/en/simulation/ros_interface.html)
+Follow the instructions as shown in the [ROS with Gazebo Simulation PX4 Documentation](https://dev.px4.io/master/en/simulation/ros_interface.html)
 To check if the necessary environment is setup correctly, you can run the gazebo SITL using the following command
-```
+
+```bash
 cd <Firmware_directory>
-make posix_sitl_default gazebo
+DONT_RUN=1 make px4_sitl_default gazebo
 ```
 To source the PX4 environment, run the following commands
-```
+
+```bash
+cd <Firmware_directory>
 source ~/catkin_ws/devel/setup.bash    // (optional)
 source Tools/setup_gazebo.bash $(pwd) $(pwd)/build/posix_sitl_default
 export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)
@@ -31,16 +34,37 @@ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)/Tools/sitl_gazebo
 ```
 You can run the rest of the roslaunch files in the same terminal
 
-### Building mavros_controllers
-mavros_controllers can be built using `catkin build`
+```bash
+ roslaunch px4 posix_sitl.launch
 ```
-cd <path_to_catkin_ws>
+
+### Building mavros_controllers
+
+- Create a catkin workspace
+
+```bash
+mkdir -p ~/catkin_ws/src
+```
+
+###### Download dependencies, this repository and build
+
+mavros_controllers has some dependencies that should be installed previous to building
+- [catkin_simple](https://github.com/catkin/catkin_simple)
+- [eigen_catkin](https://github.com/ethz-asl/eigen_catkin)
+
+```bash
+cd ~/catkin_ws/src
+git clone https://github.com/catkin/catkin_simple
+git clone https://github.com/ethz-asl/eigen_catkin
+git clone https://github.com/Jaeyoung-Lim/mavros_controllers
 catkin build mavros_controllers
+source ~/catkin_ws/devel/setup.bash
 ```
 
 ## Running the code
 The following launch file enables the geometric controller to follow a circular trajectory
-```
+
+``` bash
 roslaunch geometric_controller trajectory_track_circle.launch
 ```
 
@@ -117,3 +141,32 @@ In case you use this work as an academic context, please cite as the following.
 
 ## Contact
 Jaeyoung Lim 	jalim@student.ethz.ch
+
+
+### Build issues:
+
+
+###### catkin_simple() or eigen_catkin() not found
+
+ This should not have happened if you clone the catkin_simple and eigen_catkin repositories. Try again:
+
+```bash
+cd ~/catkin_ws/src
+git clone https://github.com/catkin/catkin_simple
+git clone https://github.com/ethz-asl/eigen_catkin
+cd ~/catkin_ws
+catkin build mavros_controllers
+source ~/catkin_ws/devel/setup.bash
+```
+
+- Refer to [this issue](https://github.com/Jaeyoung-Lim/mavros_controllers/issues/61).
+
+###### iris.sdf model not found: 
+
+Try:
+```bash
+cd <Firmware_directory>
+make px4_sitl_default sitl_gazebo
+```
+
+or refer to [this issue](https://github.com/PX4/Firmware/issues?utf8=%E2%9C%93&q=%2Firis%2Firis.sdf+) the [ROS with Gazebo Simulation PX4 Documentation](https://dev.px4.io/master/en/simulation/ros_interface.html). 
