@@ -51,11 +51,25 @@ mkdir -p ~/catkin_ws/src
 mavros_controllers has some dependencies that should be installed previous to building
 - [catkin_simple](https://github.com/catkin/catkin_simple)
 - [eigen_catkin](https://github.com/ethz-asl/eigen_catkin)
+- [mav_comm](https://github.com/ethz-asl/mav_comm)
 
 ```bash
 cd ~/catkin_ws/src
 git clone https://github.com/catkin/catkin_simple
 git clone https://github.com/ethz-asl/eigen_catkin
+git clone https://github.com/ethz-asl/mav_comm
+```
+Now you need to remove the mavros package already present in the catkin_ws/src folder, and replace it with the source files from [mavros](https://github.com/mavlink/mavros):
+
+```bash 
+cd ~/catkin_ws/src
+rm -rf mavros
+git clone https://github.com/mavlink/mavros
+```
+
+Now you are able to download this repository and build all the packages:
+
+```bash
 git clone https://github.com/Jaeyoung-Lim/mavros_controllers
 catkin build mavros_controllers
 source ~/catkin_ws/devel/setup.bash
