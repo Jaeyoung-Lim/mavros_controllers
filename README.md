@@ -38,20 +38,42 @@ You can run the rest of the roslaunch files in the same terminal
  roslaunch px4 posix_sitl.launch
 ```
 
-### Building mavros_controllers
+You will need to source the PX4 environment in every new terminal you open to launch mavros_controllers. 
 
-- Create a catkin workspace
+### Installing mavros_controllers
+
+Create a catkin workspace:
+
+a) This folder will probably be already created since the previous process would have created it. If it is not present, do:
 
 ```bash
 mkdir -p ~/catkin_ws/src
 ```
 
-###### Download dependencies, this repository and build
+Now continue either with wstool to automatically download dependencies or download them manually.
 
-mavros_controllers has some dependencies that should be installed previous to building
+###### With wstool
+
+wstool automates the installation of dependencies and updates all packages. If you have no problem updating the packages required by mavros_controllers and/or any other packages, follow this procedure. If not, follow the next 'Manually Download dependencies and build' section.
+
+```bash
+cd ~catkin/
+wstool merge -t src src/mavros_controllers/dependencies.rosinstall
+wstool update -t src -j4
+rosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO
+catkin build
+source ~/catkin_ws/devel/setup.bash
+```
+
+
+###### Manually Download dependencies and build
+
+If you did not install with wstool, you need to manually download the dependencies:
 - [catkin_simple](https://github.com/catkin/catkin_simple)
 - [eigen_catkin](https://github.com/ethz-asl/eigen_catkin)
 - [mav_comm](https://github.com/ethz-asl/mav_comm)
+
+Do:
 
 ```bash
 cd ~/catkin_ws/src
@@ -59,19 +81,13 @@ git clone https://github.com/catkin/catkin_simple
 git clone https://github.com/ethz-asl/eigen_catkin
 git clone https://github.com/ethz-asl/mav_comm
 ```
-Now you need to remove the mavros package already present in the catkin_ws/src folder, and replace it with the source files from [mavros](https://github.com/mavlink/mavros):
-
-```bash 
-cd ~/catkin_ws/src
-rm -rf mavros
-git clone https://github.com/mavlink/mavros
-```
 
 Now you are able to download this repository and build all the packages:
 
 ```bash
 git clone https://github.com/Jaeyoung-Lim/mavros_controllers
-catkin build mavros_controllers
+cd ~/catkin_ws
+catkin build
 source ~/catkin_ws/devel/setup.bash
 ```
 
@@ -79,7 +95,7 @@ source ~/catkin_ws/devel/setup.bash
 The following launch file enables the geometric controller to follow a circular trajectory
 
 ``` bash
-roslaunch geometric_controller trajectory_track_circle.launch
+roslaunch geometric_controller sitl_trajectory_track_circle.launch
 ```
 
 ## Nodes
