@@ -38,34 +38,23 @@ You can run the rest of the roslaunch files in the same terminal
  roslaunch px4 posix_sitl.launch
 ```
 
-You will need source the PX4 environment in every new terminal you open to launch mavros_controllers. 
+You will need to source the PX4 environment in every new terminal you open to launch mavros_controllers. 
 
-### Building mavros from source 
+### Installing mavros_controllers
 
+Create a catkin workspace:
 
-- Create a catkin workspace
-
-a) This folder will probably be already created since the previous process would have created. If it is not present, do the following, if it is present, skip.
+a) This folder will probably be already created since the previous process would have created it. If it is not present, do:
 
 ```bash
 mkdir -p ~/catkin_ws/src
 ```
 
-b) Now you need to remove the mavros package already present in the catkin_ws/src folder, and replace it with the source files from [mavros](https://github.com/mavlink/mavros):
-
-```bash 
-cd ~/catkin_ws/src
-rm -rf mavros
-```
-
-Now follow the [mavros installation from source procedure](https://github.com/mavlink/mavros/blob/master/mavros/README.md#source-installation).
-
-
-### Build this repository
+Now continue either with wstool to automatically download dependencies or download them manually.
 
 ###### With wstool
 
-wstool automates the installation of dependencies and updates all packages. If you have no problem updating the packages required by mavros_controllers and/or any other packages, follow this procedure. If not, follow the 'Download dependencies, this repository'.
+wstool automates the installation of dependencies and updates all packages. If you have no problem updating the packages required by mavros_controllers and/or any other packages, follow this procedure. If not, follow the next 'Manually Download dependencies and build' section.
 
 ```bash
 cd ~catkin/
@@ -77,7 +66,7 @@ source ~/catkin_ws/devel/setup.bash
 ```
 
 
-###### Download dependencies and build
+###### Manually Download dependencies and build
 
 If you did not install with wstool, you need to manually download the dependencies:
 - [catkin_simple](https://github.com/catkin/catkin_simple)
@@ -97,6 +86,7 @@ Now you are able to download this repository and build all the packages:
 
 ```bash
 git clone https://github.com/Jaeyoung-Lim/mavros_controllers
+cd ~/catkin_ws
 catkin build
 source ~/catkin_ws/devel/setup.bash
 ```
