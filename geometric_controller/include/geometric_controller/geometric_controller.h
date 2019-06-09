@@ -30,6 +30,8 @@
 #include <std_srvs/SetBool.h>
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
+#include <dynamic_reconfigure/server.h>
+#include <geometric_controller/geometricCtrlConfig.h>
 
 #define MODE_ROTORTHRUST  1
 #define MODE_BODYRATE     2
@@ -148,6 +150,7 @@ class geometricCtrl
     bool received_home_pose;
 
   public:
+    void dynamicReconfigureCallback(geometric_controller::geometricCtrlConfig &config,uint32_t level);
     geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
     void computeBodyRateCmd(bool ctrl_mode);
     Eigen::Vector4d quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p);
