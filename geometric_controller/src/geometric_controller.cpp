@@ -448,3 +448,39 @@ void geometricCtrl::setFeedthrough(bool feed_through){
   feedthrough_enable_ = feed_through;
 
 }
+
+
+void geometricCtrl::dynamicReconfigureCallback(geometric_controller::geometricCtrlConfig &config, uint32_t  level) {
+
+    if(max_fb_acc_ != config.max_acc){
+		max_fb_acc_ = config.max_acc;
+  		ROS_INFO("Reconfigure request : max_acc = %.2f ",config.max_acc);
+    }
+	else if(Kpos_x_ != config.Kp_x){
+		Kpos_x_ = config.Kp_x;
+	   ROS_INFO("Reconfigure request : Kp_x  = %.2f  ",config.Kp_x);
+	}
+	else if(Kpos_y_ != config.Kp_y){
+		Kpos_y_ = config.Kp_y;
+	   ROS_INFO("Reconfigure request : Kp_y  = %.2f  ",config.Kp_y);
+	}
+	else if(Kpos_z_ != config.Kp_z){
+		Kpos_z_= config.Kp_z;
+	   ROS_INFO("Reconfigure request : Kp_z  = %.2f  ",config.Kp_z);
+	}
+	else if(Kvel_x_ != config.Kv_x){
+		Kvel_x_ = config.Kv_x;
+	   ROS_INFO("Reconfigure request : Kv_x  = %.2f  ",config.Kv_x);
+	}
+	else if(Kvel_y_ != config.Kv_y){
+		Kvel_y_ = config.Kv_y;
+	   ROS_INFO("Reconfigure request : Kv_y =%.2f  ",config.Kv_y);
+	}
+	else if(Kvel_z_ != config.Kv_z){
+		Kvel_z_ = config.Kv_z;
+	   ROS_INFO("Reconfigure request : Kv_z  = %.2f  ",config.Kv_z);
+	}
+
+  Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
+  Kvel_ << -Kvel_x_, -Kvel_z_, -Kvel_z_;
+}
