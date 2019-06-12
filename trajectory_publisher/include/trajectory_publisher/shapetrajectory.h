@@ -18,10 +18,9 @@ private:
   int N;
   double dt_;
   double T_;
-  Eigen::Vector3d traj_axis_;
   Eigen::Vector3d traj_origin_;
-  Eigen::Vector3d traj_radial_;
   double traj_radius_, traj_omega_;
+  double radius_;
 
 public:
   shapetrajectory(int type);

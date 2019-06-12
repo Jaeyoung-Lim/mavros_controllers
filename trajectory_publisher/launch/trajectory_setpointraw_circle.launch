@@ -8,7 +8,6 @@
         <param name="Kpos_y" value="8.0" />
         <param name="Kpos_z" value="30.0" />
         <param name="reference_type" value="16" />
+        <param name="shape_type" value="1" />
   </node>
-
-
 </launch>

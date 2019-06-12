@@ -18,6 +18,7 @@
 #include <nav_msgs/Path.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/HomePosition.h>
+#include <mavros_msgs/State.h>
 #include <mav_planning_msgs/PolynomialTrajectory4D.h>
 #include "controller_msgs/FlatTarget.h"
 #include "trajectory_publisher/trajectory.h"
@@ -35,29 +36,32 @@ private:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
   ros::Publisher trajectoryPub_;
-  ros::Publisher referencePub_;
-  ros::Publisher flatreferencePub_;
+//  ros::Publisher referencePub_;
+//  ros::Publisher flatreferencePub_;
   ros::Publisher rawreferencePub_;
-  std::vector<ros::Publisher> primitivePub_;
+//  std::vector<ros::Publisher> primitivePub_;
 
-  ros::Subscriber motionselectorSub_;
+//  ros::Subscriber motionselectorSub_;
+//  ros::Subscriber mavtwistSub_;
   ros::Subscriber mavposeSub_;
-  ros::Subscriber mavtwistSub_;
 	ros::Subscriber mavhomeposSub_;
+  ros::Subscriber mavstateSub_;
 
   ros::ServiceServer trajtriggerServ_;
   ros::Timer trajloop_timer_;
   ros::Timer refloop_timer_;
+
   ros::Time start_time_, curr_time_;
 
   nav_msgs::Path refTrajectory_;
-  nav_msgs::Path primTrajectory_;
+  mavros_msgs::State current_state_;
+//  nav_msgs::Path primTrajectory_;
 
   int trajectory_type_;
   Eigen::Vector3d p_targ, v_targ, a_targ;
   Eigen::Vector3d p_mav_, v_mav_;
-  Eigen::Vector3d shape_origin_, shape_axis_;
 	Eigen::Vector3d p_home_;
+  Eigen::Vector3d shape_origin_, shape_axis_;
   double shape_omega_ = 0;
   double theta_ = 0.0;
   double controlUpdate_dt_;
@@ -66,34 +70,34 @@ private:
   double init_pos_x_, init_pos_y_, init_pos_z_;
   double max_jerk_;
   int pubreference_type_;
-  int num_primitives_;
+//  int num_primitives_;
   int motion_selector_;
 	int shape_type_; 
+  bool is_trajectory_started_;
+  double des_altitude_;
 
   std::vector<std::shared_ptr<trajectory>> motionPrimitives_;
-  std::vector<Eigen::Vector3d> inputs_;
-
+//  std::vector<Eigen::Vector3d> inputs_;
 
 public:
   trajectoryPublisher(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
   void updateReference();
   void pubrefTrajectory(int selector);
-  void pubprimitiveTrajectory();
-  void pubrefState();
-  void pubflatrefState();
+//  void pubprimitiveTrajectory();
+//  void pubrefState();
+//  void pubflatrefState();
   void pubrefSetpointRaw();
-  void initializePrimitives(int type);
-  void updatePrimitives();
+//  void initializePrimitives(int type);
+//  void updatePrimitives();
   void loopCallback(const ros::TimerEvent& event);
   void refCallback(const ros::TimerEvent& event);
   bool triggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
   void trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message);
-  void motionselectorCallback(const std_msgs::Int32& selector);
+//  void motionselectorCallback(const std_msgs::Int32& selector);
   void mavposeCallback(const geometry_msgs::PoseStamped& msg);
-  void mavtwistCallback(const geometry_msgs::TwistStamped& msg);
+//  void mavtwistCallback(const geometry_msgs::TwistStamped& msg);
 	void mavhomeposCallback(const mavros_msgs::HomePosition& msg);
-
+  void mavstateCallback(const mavros_msgs::State& msg);
   };
-
 
 #endif
