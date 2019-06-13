@@ -450,7 +450,7 @@ void geometricCtrl::setFeedthrough(bool feed_through){
 }
 
 
-void geometricCtrl::dynamicReconfigureCallback(geometric_controller::geometricCtrlConfig &config, uint32_t  level) {
+void geometricCtrl::dynamicReconfigureCallback(geometric_controller::GeometricControllerConfig &config, uint32_t  level) {
 
     if(max_fb_acc_ != config.max_acc){
 		max_fb_acc_ = config.max_acc;
