@@ -62,6 +62,7 @@ private:
   Eigen::Vector3d p_mav_, v_mav_;
 	Eigen::Vector3d p_home_;
   Eigen::Vector3d shape_origin_, shape_axis_;
+  Eigen::Vector3d des_pos_;
   double shape_omega_ = 0;
   double theta_ = 0.0;
   double controlUpdate_dt_;
@@ -74,7 +75,7 @@ private:
   int motion_selector_;
 	int shape_type_; 
   bool is_trajectory_started_;
-  double des_altitude_;
+//  double des_altitude_;
 
   std::vector<std::shared_ptr<trajectory>> motionPrimitives_;
 //  std::vector<Eigen::Vector3d> inputs_;

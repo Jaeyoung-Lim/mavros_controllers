@@ -59,7 +59,9 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
 //  num_primitives_ = 1;
   motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(shape_type_));
   is_trajectory_started_ = false;
-  des_altitude_ = 1.0;
+  des_pos_ << 0.0, 0.0, 1.0;
+
+  //des_altitude_ = 1.0;
 //  primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset", 1));
 //  }
 
@@ -82,7 +84,7 @@ void trajectoryPublisher::updateReference() {
   else
     trigger_time_ = 0.0;
 
-  p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_) + p_home_;
+  p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_) + des_pos_;
   v_targ = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
 //  if(pubreference_type_!=0) 
 //		a_targ = motionPrimitives_.at(motion_selector_)->getAcceleration(trigger_time_);
@@ -160,12 +162,24 @@ void trajectoryPublisher::pubrefSetpointRaw(){
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
   msg.type_mask = 64; // ignore acceleration target
-  msg.position.x = p_targ(0);
-  msg.position.y = p_targ(1);
-  msg.position.z = des_altitude_;
-  msg.velocity.x = v_targ(0);
-  msg.velocity.y = v_targ(1);
-  msg.velocity.z = v_targ(2);
+  if(!is_trajectory_started_)
+  {
+    msg.position.x = des_pos_(0);
+    msg.position.y = des_pos_(1);
+    msg.position.z = des_pos_(2);
+    msg.velocity.x = 0.0;
+    msg.velocity.y = 0.0;
+    msg.velocity.z = 0.0;
+  }
+  else
+  {
+    msg.position.x = p_targ(0);
+    msg.position.y = p_targ(1);
+    msg.position.z = des_pos_(2);
+    msg.velocity.x = v_targ(0);
+    msg.velocity.y = v_targ(1);
+    msg.velocity.z = v_targ(2);
+  }
   rawreferencePub_.publish(msg);
 }
 
@@ -226,8 +240,14 @@ void trajectoryPublisher::mavposeCallback(const geometry_msgs::PoseStamped& msg)
   p_mav_(0) = msg.pose.position.x;
   p_mav_(1) = msg.pose.position.y;
   p_mav_(2) = msg.pose.position.z;
+
   if(current_state_.mode != "OFFBOARD")
-   des_altitude_ = p_mav_(2);
+  {
+    des_pos_(0) = msg.pose.position.x;
+    des_pos_(1) = msg.pose.position.y;
+    des_pos_(2) = msg.pose.position.z;
+  }
+  // des_altitude_ = p_mav_(2);
 //  updatePrimitives();
 }
 
