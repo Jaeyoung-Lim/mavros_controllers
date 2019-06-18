@@ -135,6 +135,9 @@ void geometricCtrl::getTargetFromTrajectory(const trajectory_msgs::MultiDOFJoint
       targetAcc_ << pt.accelerations[0].linear.x, pt.accelerations[0].linear.y, pt.accelerations[0].linear.z;
       targetJerk_ << 0.0, 0.0, 0.0;
       targetSnap_ << 0.0, 0.0, 0.0;
+
+      if(i == msg.points.size() - 1) follow_reftrajectory_ = false;
+      return;
     }
   }
 }
