@@ -1,13 +1,15 @@
+<?xml version="1.0"?>
 <launch>
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
         <param name="trajectory_type" value="1" />
-        <param name="shape_omega" value="1.2" />
+        <param name="shape_omega" value="0.5" />
         <param name="initpos_z" value="2.0" />
         <param name="max_acc" value="10.0" />
         <param name="Kpos_x" value="8.0" />
         <param name="Kpos_y" value="8.0" />
         <param name="Kpos_z" value="30.0" />
         <param name="reference_type" value="16" />
+        <param name="shape_type" value="1" />
   </node>
 
 

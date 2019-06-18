@@ -1,6 +1,4 @@
-//
 // Created by jalim on 11.10.18.
-//
 
 #include "trajectory_publisher/shapetrajectory.h"
 
@@ -41,7 +39,6 @@ void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d ve
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc, Eigen::Vector3d jerk){
 
 }
-
 
 Eigen::Vector3d shapetrajectory::getPosition(double time){
 

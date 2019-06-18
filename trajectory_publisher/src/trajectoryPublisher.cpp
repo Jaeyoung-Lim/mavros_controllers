@@ -160,8 +160,13 @@ void trajectoryPublisher::pubrefTrajectory(int selector){
 void trajectoryPublisher::pubrefSetpointRaw(){
   mavros_msgs::PositionTarget msg;
   msg.header.stamp = ros::Time::now();
+//  std::cout << msg.coordinate_frame << ", " << msg.type_mask << ", " << msg.yaw << std::endl;
   msg.header.frame_id = "map";
-  msg.type_mask = 64; // ignore acceleration target
+  msg.coordinate_frame = 1;
+  msg.type_mask = 64 + 128 + 256 + 512; // ignore ax, ay, az, and force
+  msg.yaw = 0.0;
+  msg.yaw_rate = 0.0;
+
   if(!is_trajectory_started_)
   {
     msg.position.x = des_pos_(0);
@@ -178,7 +183,7 @@ void trajectoryPublisher::pubrefSetpointRaw(){
     msg.position.z = des_pos_(2);
     msg.velocity.x = v_targ(0);
     msg.velocity.y = v_targ(1);
-    msg.velocity.z = v_targ(2);
+    msg.velocity.z = 0.0;
   }
   rawreferencePub_.publish(msg);
 }
