@@ -1,129 +1,27 @@
-## Generic .travis.yml file for running continuous integration on Travis-CI for
-# any ROS package.
-#
-# Available here:
-#   - https://github.com/felixduvallet/ros-travis-integration
-#
-# This installs ROS on a clean Travis-CI virtual machine, creates a ROS
-# workspace, resolves all listed dependencies, and sets environment variables
-# (setup.bash). Then, it compiles the entire ROS workspace (ensuring there are
-# no compilation errors), and runs all the tests. If any of the compilation/test
-# phases fail, the build is marked as a failure.
-#
-# We handle two types of package dependencies specified in the package manifest:
-#   - system dependencies that can be installed using `rosdep`, including other
-#     ROS packages and system libraries. These dependencies must be known to
-#     `rosdistro` and are installed using apt-get.
-#   - package dependencies that must be checked out from source. These are handled by
-#     `wstool`, and should be listed in a file named dependencies.rosinstall.
-#
 
-# There are envioronment variables you may want to change, such as ROS_DISTRO,
-# ROSINSTALL_FILE, and the CATKIN_OPTIONS file.  See the README.md for more
-# information on these flags, and
-# https://docs.travis-ci.com/user/environment-variables/ for information about
-# Travis environment variables in general.
+# Based on https://github.com/felixduvallet/ros-travis-integration
 #
-# Author: Felix Duvallet <felixd@gmail.com>
+# vim:set ts=2 sw=2 et:
 
-# NOTE: The build lifecycle on Travis.ci is something like this:
-#    before_install
-#    install
-#    before_script
-#    script
-#    after_success or after_failure
-#    after_script
-#    OPTIONAL before_deploy
-#    OPTIONAL deploy
-#    OPTIONAL after_deploy
-
-################################################################################
-
-sudo: required
-cache:
-  - apt
-
-# Build all valid Ubuntu/ROS combinations available on Travis VMs.
 language: generic
-matrix:
-  include:
-  - name: "Xenial kinetic"
-    dist: xenial
-    env: ROS_DISTRO=kinetic
+services:
+  - docker
 
-# Configuration variables. All variables are global now, but this can be used to
-# trigger a build matrix for different ROS distributions if desired.
+cache:
+  directories:
+    - $HOME/.ccache
+
 env:
   global:
-    - ROS_CI_DESKTOP="`lsb_release -cs`"  # e.g. [precise|trusty|...]
-    - CI_SOURCE_PATH=$(pwd)
-    - ROSINSTALL_FILE=$CI_SOURCE_PATH/dependencies.rosinstall
-    - CATKIN_OPTIONS=$CI_SOURCE_PATH/catkin.options
-    - ROS_PARALLEL_JOBS='-j8 -l6'
-    # Set the python path manually to include /usr/-/python2.7/dist-packages
-    # as this is where apt-get installs python packages.
-    - PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/dist-packages:/usr/local/lib/python2.7/dist-packages
+    - CCACHE_DIR=$HOME/.ccache
+    - DOCKER_RUN_OPTS="-e CI=true"
+  matrix:
+    - ROS_DISTRO="kinetic" UPSTREAM_WORKSPACE=file $ROSINSTALL_FILENAME='dependencies.rosinstall'
+    - ROS_DISTRO="lunar" UPSTREAM_WORKSPACE=file $ROSINSTALL_FILENAME='dependencies.rosinstall'
+    - ROS_DISTRO="melodic" UPSTREAM_WORKSPACE=file $ROSINSTALL_FILENAME='dependencies.rosinstall'
+    - ROS_DISTRO="kinetic" UPSTREAM_WORKSPACE=file $ROSINSTALL_FILENAME='dependencies.rosinstall'
 
-################################################################################
-
-# Install system dependencies, namely a very barebones ROS setup.
-before_install:
-  - sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
-  - sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-  - sudo apt-get update -qq
-  - sudo apt-get install dpkg
-  - sudo apt-get install -y --allow-unauthenticated python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-ros-base
-  - sudo apt-get install -y --allow-unauthenticated  python-catkin-tools python-rosinstall-generator ros-$ROS_DISTRO-geographic-msgs
-  - sudo apt-get install -y --allow-unauthenticated  ros-kinetic-mavros ros-kinetic-mavros-extras libeigen3-dev geographiclib-tools libgeographic-dev ros-$ROS_DISTRO-gazebo-msgs
-  - source /opt/ros/$ROS_DISTRO/setup.bash
-  # Prepare rosdep to install dependencies.
-  - sudo rosdep init
-  - rosdep update
-
-# Create a catkin workspace with the package under integration.
 install:
-  - mkdir -p ~/catkin_ws/src
-  - cd ~/catkin_ws
-  - catkin init
-  # Create the devel/setup.bash (run catkin_make with an empty workspace) and
-  # source it to set the path variables.
-  - cd ~/catkin_ws
-  - catkin build
-  - source devel/setup.bash
-  # Add the package under integration to the workspace using a symlink.
-  - cd ~/catkin_ws/src
-  - ln -s $CI_SOURCE_PATH .
-
-# Install all dependencies, using wstool first and rosdep second.
-# wstool looks for a ROSINSTALL_FILE defined in the environment variables.
-before_script:
-  # source dependencies: install using wstool.
-  - cd ~/catkin_ws
-  - wstool init src
-  # - rosinstall_generator --rosdistro kinetic mavlink | tee /tmp/mavros.rosinstall
-  # - rosinstall_generator --upstream mavros --deps | tee -a /tmp/mavros.rosinstall
-  # - wstool merge -y -t src /tmp/mavros.rosinstall
-  - wstool merge -t src $ROSINSTALL_FILE
-  - wstool update -t src -j4
-  # package depdencies: install using rosdep.
-  - rosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO
-  - wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
-  - chmod +x install_geographiclib_datasets.sh
-  - sudo ./install_geographiclib_datasets.sh
-  # - sudo ~/catkin_ws/src/mavros/mavros/scripts/install_geographiclib_datasets.sh
-
-
-# Compile and test (mark the build as failed if any step fails). If the
-# CATKIN_OPTIONS file exists, use it as an argument to catkin_make, for example
-# to blacklist certain packages.
-#
-# NOTE on testing: `catkin_make run_tests` will show the output of the tests
-# (gtest, nosetest, etc..) but always returns 0 (success) even if a test
-# fails. Running `catkin_test_results` aggregates all the results and returns
-# non-zero when a test fails (which notifies Travis the build failed).
+  - git clone --depth=1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci
 script:
-  - source /opt/ros/$ROS_DISTRO/setup.bash
-  - cd ~/catkin_ws
-  - catkin build $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
-  # Run the tests, ensuring the path is set correctly.
-  - source devel/setup.bash
+  - .industrial_ci/travis.sh
