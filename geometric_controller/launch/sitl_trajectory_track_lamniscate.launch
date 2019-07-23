@@ -1,0 +1,60 @@
+<launch>
+  <arg name="mav_name" default="iris"/>
+  <arg name="fcu_url" default="udp://:14540@127.0.0.1:14557"/>
+  <arg name="gcs_url" default="" />
+  <arg name="tgt_system" default="1" />
+  <arg name="tgt_component" default="1" />
+  <arg name="command_input" default="2" />
+  <arg name="gazebo_simulation" default="true" />
+  <arg name="visualization" default="true"/>
+  <arg name="log_output" default="screen" />
+  <arg name="fcu_protocol" default="v2.0" />
+  <arg name="respawn_mavros" default="false" />
+  
+  <node pkg="geometric_controller" type="geometric_controller_node" name="geometric_controller" output="screen">
+  		<param name="mav_name" type="string" value="$(arg mav_name)" />
+          <remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
+          <param name="ctrl_mode" value="$(arg command_input)" />
+          <param name="enable_sim" value="$(arg gazebo_simulation)" />
+          <param name="enable_gazebo_state" value="true"/>
+          <param name="max_acc" value="20.0" />
+          <param name="Kp_x" value="12.0" />
+          <param name="Kp_y" value="12.0" />
+          <param name="Kp_z" value="10.0" />
+          <param name="Kv_x" value="3.0" />
+          <param name="Kv_y" value="3.0" />
+          <param name="Kv_z" value="3.3" />
+  </node>
+
+  <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
+        <param name="trajectory_type" value="2" />
+        <param name="shape_omega" value="1.2" />
+        <param name="initpos_z" value="2.0" />
+        <param name="reference_type" value="2" />
+  </node>
+
+  <!-- Launch rqt_reconfigure -->
+  <node pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen" name="rqt_reconfigure" />
+
+  <include file="$(find mavros)/launch/node.launch">
+      <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
+      <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
+
+      <arg name="fcu_url" value="$(arg fcu_url)" />
+      <arg name="gcs_url" value="$(arg gcs_url)" />
+      <arg name="tgt_system" value="$(arg tgt_system)" />
+      <arg name="tgt_component" value="$(arg tgt_component)" />
+      <arg name="log_output" value="$(arg log_output)" />
+      <arg name="fcu_protocol" value="$(arg fcu_protocol)" />
+      <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
+  </include>
+
+  <include file="$(find px4)/launch/posix_sitl.launch">
+      <arg name="vehicle" value="$(arg mav_name)"/>
+  </include>
+
+  <group if="$(arg visualization)">
+      <node type="rviz" name="rviz" pkg="rviz" args="-d $(find geometric_controller)/launch/config_file.rviz" />
+  </group>
+
+</launch>
