@@ -84,7 +84,7 @@ class geometricCtrl
     double kp_rot_, kd_rot_;
     double reference_request_dt_;
     double attctrl_tau_;
-    double norm_thrust_const_;
+    double norm_thrust_const_, norm_thrust_offset_;
     double max_fb_acc_;
     double dx_, dy_, dz_;
 

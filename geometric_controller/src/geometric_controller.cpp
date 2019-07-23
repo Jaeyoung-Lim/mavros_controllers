@@ -38,13 +38,14 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_private_.param<int>("ctrl_mode", ctrl_mode_, MODE_BODYRATE);
   nh_private_.param<bool>("enable_sim", sim_enable_, true);
   nh_private_.param<bool>("velocity_yaw", velocity_yaw_, false);
-  nh_private_.param<double>("max_acc", max_fb_acc_, 7.0);
+  nh_private_.param<double>("max_acc", max_fb_acc_, 9.0);
   nh_private_.param<double>("yaw_heading", mavYaw_, 0.0);
   nh_private_.param<double>("drag_dx", dx_, 0.0);
   nh_private_.param<double>("drag_dy", dy_, 0.0);
   nh_private_.param<double>("drag_dz", dz_, 0.0);
   nh_private_.param<double>("attctrl_constant", attctrl_tau_, 0.1);
   nh_private_.param<double>("normalizedthrust_constant", norm_thrust_const_, 0.05); // 1 / max acceleration
+  nh_private_.param<double>("normalizedthrust_offset", norm_thrust_offset_, 0.1); // 1 / max acceleration
   nh_private_.param<double>("Kp_x", Kpos_x_, 8.0);
   nh_private_.param<double>("Kp_y", Kpos_y_, 8.0);
   nh_private_.param<double>("Kp_z", Kpos_z_, 10.0);
@@ -412,7 +413,7 @@ Eigen::Vector4d geometricCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Ve
   ratecmd(2) = (2.0 / attctrl_tau_) * std::copysign(1.0, qe(0)) * qe(3);
   rotmat = quat2RotMatrix(mavAtt_);
   zb = rotmat.col(2);
-  ratecmd(3) = std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb))); //Calculate thrust
+  ratecmd(3) = std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb) + norm_thrust_offset_)); //Calculate thrust
 
   return ratecmd;
 }
