@@ -106,9 +106,9 @@ Eigen::Vector3d shapetrajectory::getVelocity(double time){
     case TRAJ_LAMNISCATE : //Lemniscate of Genero
 
       theta = traj_omega_* time;
-      velocity = -std::sin(theta) * traj_radial_
+      velocity = traj_omega_ * (-std::sin(theta) * traj_radial_
                  + (std::pow(std::cos(theta), 2) - std::pow(std::sin(theta), 2)) * traj_axis_.cross(traj_radial_)
-                 + (1 + std::sin(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_;
+                 + (std::sin(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_);
       break;
 
     default :
