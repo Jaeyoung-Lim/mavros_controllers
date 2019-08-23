@@ -45,9 +45,9 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   nh_private_.param<double>("drag_dz", dz_, 0.0);
   nh_private_.param<double>("attctrl_constant", attctrl_tau_, 0.1);
   nh_private_.param<double>("normalizedthrust_constant", norm_thrust_const_, 0.05); // 1 / max acceleration
-  nh_private_.param<double>("Kp_x", Kpos_x_, 8.0);
-  nh_private_.param<double>("Kp_y", Kpos_y_, 8.0);
-  nh_private_.param<double>("Kp_z", Kpos_z_, 10.0);
+  nh_private_.param<double>("/Kp_x", Kpos_x_, 8.0);
+  nh_private_.param<double>("/Kp_y", Kpos_y_, 8.0);
+  nh_private_.param<double>("/Kp_z", Kpos_z_, 10.0);
   nh_private_.param<double>("Kv_x", Kvel_x_, 1.5);
   nh_private_.param<double>("Kv_y", Kvel_y_, 1.5);
   nh_private_.param<double>("Kv_z", Kvel_z_, 3.3);
@@ -57,7 +57,10 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   targetVel_ << 0.0, 0.0, 0.0;
   g_ << 0.0, 0.0, -9.8;
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
-  Kvel_ << -Kvel_x_, -Kvel_z_, -Kvel_z_;
+  Kvel_ << -Kvel_x_, -Kvel_y_, -Kvel_z_;
+
+  ROS_INFO_STREAM("\n\nKpos_: " << Kpos_);
+  ROS_INFO_STREAM("\n\nKvel_: " << Kvel_);
   D_ << dx_, dy_, dz_;
 
   tau << tau_x, tau_y, tau_z;
