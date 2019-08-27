@@ -53,8 +53,9 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
                               ros::TransportHints().tcpNoDelay());
   mavtwistSub_ = nh_.subscribe("mavros/local_position/velocity", 1, &trajectoryPublisher::mavtwistCallback, this,
                                ros::TransportHints().tcpNoDelay());
+  jointtrajectoryPub_ = nh_.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/mavros/setpoint_trajectory/local", 1);
 
-  trajloop_timer_ = nh_.createTimer(ros::Duration(0.1), &trajectoryPublisher::loopCallback, this);
+  trajloop_timer_ = nh_.createTimer(ros::Duration(10.0), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
 
   trajtriggerServ_ = nh_.advertiseService("start", &trajectoryPublisher::triggerCallback, this);
@@ -136,10 +137,42 @@ void trajectoryPublisher::pubrefTrajectory(int selector) {
   refTrajectory_.header.stamp = ros::Time::now();
   refTrajectory_.header.frame_id = "map";
   trajectoryPub_.publish(refTrajectory_);
+
+  trajectory_msgs::MultiDOFJointTrajectory reference_trajectory;
+
+  reference_trajectory = getMultiDofTrajectoryPoints(refTrajectory_);
+  reference_trajectory.header.stamp = ros::Time::now();
+  jointtrajectoryPub_.publish(reference_trajectory);
+
 }
 
-void trajectoryPublisher::pubprimitiveTrajectory() {
-  for (int i = 0; i < motionPrimitives_.size(); i++) {
+trajectory_msgs::MultiDOFJointTrajectory trajectoryPublisher::getMultiDofTrajectoryPoints(nav_msgs::Path trajectory) {
+  trajectory_msgs::MultiDOFJointTrajectory trajectory_msg;
+  trajectory_msgs::MultiDOFJointTrajectoryPoint trajectory_point_msg;
+  geometry_msgs::Transform transform;
+
+  trajectory_point_msg.transforms.push_back(transform);
+  for(size_t i = 0; i < trajectory.poses.size(); i++) {
+    trajectory_point_msg.time_from_start = ros::Duration(i * 0.1);
+    trajectory_point_msg.transforms[0].translation.x = trajectory.poses[i].pose.position.x;
+    trajectory_point_msg.transforms[0].translation.y = trajectory.poses[i].pose.position.y;
+    trajectory_point_msg.transforms[0].translation.z = trajectory.poses[i].pose.position.z;
+    trajectory_point_msg.transforms[0].rotation.w = 1.0;
+    trajectory_point_msg.transforms[0].rotation.x = 0.0;
+    trajectory_point_msg.transforms[0].rotation.y = 0.0;
+    trajectory_point_msg.transforms[0].rotation.z = 0.0;
+
+    trajectory_msg.points.emplace_back(trajectory_point_msg);
+  }
+
+  return trajectory_msg;
+
+
+}
+
+void trajectoryPublisher::pubprimitiveTrajectory(){
+
+  for(int i = 0; i < motionPrimitives_.size(); i++ ){
     primTrajectory_ = motionPrimitives_.at(i)->getSegment();
     primTrajectory_.header.stamp = ros::Time::now();
     primTrajectory_.header.frame_id = "map";
