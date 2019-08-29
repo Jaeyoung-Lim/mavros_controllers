@@ -60,8 +60,6 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
   Kvel_ << -Kvel_x_, -Kvel_y_, -Kvel_z_;
 
-  ROS_INFO_STREAM("\n\nKpos_: " << Kpos_);
-  ROS_INFO_STREAM("\n\nKvel_: " << Kvel_);
   D_ << dx_, dy_, dz_;
 
   tau << tau_x, tau_y, tau_z;

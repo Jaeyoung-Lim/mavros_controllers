@@ -93,7 +93,6 @@ git clone https://github.com/ethz-asl/mav_comm
 Build all the packages:
 
 ```bash
-git clone https://github.com/Jaeyoung-Lim/mavros_controllers
 cd ~/catkin_ws
 catkin build
 source ~/catkin_ws/devel/setup.bash
