@@ -45,10 +45,17 @@ You will need to source the PX4 environment in every new terminal you open to la
 
 Create a catkin workspace:
 
-a) This folder will probably be already created since the previous process would have created it. If it is not present, do:
+This folder will probably be already created since the previous process would have created it. If it is not present, do:
 
 ```bash
 mkdir -p ~/catkin_ws/src
+```
+
+###### Clone this repository
+
+```bash
+cd ~/catkin_ws/src
+git clone https://github.com/Jaeyoung-Lim/mavros_controllers
 ```
 
 Now continue either with wstool to automatically download dependencies or download them manually.
@@ -58,7 +65,7 @@ Now continue either with wstool to automatically download dependencies or downlo
 wstool automates the installation of dependencies and updates all packages. If you have no problem updating the packages required by mavros_controllers and/or any other packages, follow this procedure. If not, follow the next 'Manually Download dependencies and build' section.
 
 ```bash
-cd ~catkin/
+cd ~/catkin_ws
 wstool merge -t src src/mavros_controllers/dependencies.rosinstall
 wstool update -t src -j4
 rosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO
@@ -83,10 +90,9 @@ git clone https://github.com/ethz-asl/eigen_catkin
 git clone https://github.com/ethz-asl/mav_comm
 ```
 
-Now you are able to download this repository and build all the packages:
+Build all the packages:
 
 ```bash
-git clone https://github.com/Jaeyoung-Lim/mavros_controllers
 cd ~/catkin_ws
 catkin build
 source ~/catkin_ws/devel/setup.bash

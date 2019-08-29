@@ -58,7 +58,8 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   targetVel_ << 0.0, 0.0, 0.0;
   g_ << 0.0, 0.0, -9.8;
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
-  Kvel_ << -Kvel_x_, -Kvel_z_, -Kvel_z_;
+  Kvel_ << -Kvel_x_, -Kvel_y_, -Kvel_z_;
+
   D_ << dx_, dy_, dz_;
 
   tau << tau_x, tau_y, tau_z;

@@ -20,7 +20,7 @@
           <param name="max_acc" value="10.0" />
           <param name="Kp_x" value="8.0" />
           <param name="Kp_y" value="8.0" />
-          <param name="Kp_z" value="30.0" />
+          <param name="Kp_z" value="10.0" />
   </node>
 
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
