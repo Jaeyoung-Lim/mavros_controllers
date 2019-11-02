@@ -56,8 +56,6 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
 
   targetPos_ << 0.0, 0.0, 2.0; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
-  errorPos_ << 0.0, 0.0, 0.0;
-  errorVel_ << 0.0, 0.0, 0.0;
   mavPos_ << 0.0, 0.0, 0.0;
   mavVel_ << 0.0, 0.0, 0.0;
   g_ << 0.0, 0.0, -9.8;
@@ -192,12 +190,9 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
       break;
   case MISSION_EXECUTION:
   
-    errorPos_ = mavPos_ - targetPos_;
-    errorVel_ = mavVel_ - targetVel_;
-
-    if(!feedthrough_enable_)  computeBodyRateCmd(false);
-    pubReferencePose();
-    pubRateCommands();
+    if(!feedthrough_enable_)  computeBodyRateCmd();
+    pubReferencePose(targetPos_, q_des);
+    pubRateCommands(cmdBodyRate_);
     appendPoseHistory();
     pubPoseHistory();
     break;
@@ -245,35 +240,42 @@ void geometricCtrl::statusloopCallback(const ros::TimerEvent& event){
   pubSystemStatus();
 }
 
-void geometricCtrl::pubReferencePose(){
-  referencePoseMsg_.header.stamp = ros::Time::now();
-  referencePoseMsg_.header.frame_id = "map";
-  referencePoseMsg_.pose.position.x = targetPos_(0);
-  referencePoseMsg_.pose.position.y = targetPos_(1);
-  referencePoseMsg_.pose.position.z = targetPos_(2);
-  referencePoseMsg_.pose.orientation.w = q_des(0);
-  referencePoseMsg_.pose.orientation.x = q_des(1);
-  referencePoseMsg_.pose.orientation.y = q_des(2);
-  referencePoseMsg_.pose.orientation.z = q_des(3);
-  referencePosePub_.publish(referencePoseMsg_);
+void geometricCtrl::pubReferencePose(const Eigen::Vector3d &target_position, const Eigen::Vector4d &target_attitude){
+  geometry_msgs::PoseStamped msg;
+  
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "map";
+  msg.pose.position.x = target_position(0);
+  msg.pose.position.y = target_position(1);
+  msg.pose.position.z = target_position(2);
+  msg.pose.orientation.w = target_attitude(0);
+  msg.pose.orientation.x = target_attitude(1);
+  msg.pose.orientation.y = target_attitude(2);
+  msg.pose.orientation.z = target_attitude(3);
+  referencePosePub_.publish(msg);
 }
 
-void geometricCtrl::pubRateCommands(){
-  angularVelMsg_.header.stamp = ros::Time::now();
-  angularVelMsg_.header.frame_id= "map";
-  angularVelMsg_.body_rate.x = cmdBodyRate_(0);
-  angularVelMsg_.body_rate.y = cmdBodyRate_(1);
-  angularVelMsg_.body_rate.z = cmdBodyRate_(2);
-  angularVelMsg_.type_mask = 128; //Ignore orientation messages
-  angularVelMsg_.thrust = cmdBodyRate_(3);
-  angularVelPub_.publish(angularVelMsg_);
+void geometricCtrl::pubRateCommands(const Eigen::Vector4d &cmd){
+  mavros_msgs::AttitudeTarget msg;
+  
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id= "map";
+  msg.body_rate.x = cmd(0);
+  msg.body_rate.y = cmd(1);
+  msg.body_rate.z = cmd(2);
+  msg.type_mask = 128; //Ignore orientation messages
+  msg.thrust = cmd(3);
+  
+  angularVelPub_.publish(msg);
 }
 
 void geometricCtrl::pubPoseHistory(){
   nav_msgs::Path msg;
+
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
   msg.poses = posehistory_vector_;
+  
   posehistoryPub_.publish(msg);
 }
 
@@ -309,29 +311,29 @@ geometry_msgs::PoseStamped geometricCtrl::vector3d2PoseStampedMsg(Eigen::Vector3
 }
 
 
-void geometricCtrl::computeBodyRateCmd(bool ctrl_mode){
-  Eigen::Matrix3d R_ref;
-
-  a_ref = targetAcc_;
+void geometricCtrl::computeBodyRateCmd(){
 
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
-  q_ref = acc2quaternion(a_ref - g_, mavYaw_);
-  R_ref = quat2RotMatrix(q_ref);
-  a_fb = Kpos_.asDiagonal() * errorPos_ + Kvel_.asDiagonal() * errorVel_; //feedforward term for trajectory error
+  const Eigen::Vector3d a_ref = targetAcc_;
+  const Eigen::Vector4d q_ref = acc2quaternion(a_ref - g_, mavYaw_);
+  const Eigen::Matrix3d R_ref = quat2RotMatrix(q_ref);
+
+  const Eigen::Vector3d pos_error = mavPos_ - targetPos_;
+  const Eigen::Vector3d vel_error = mavVel_ - targetVel_;
+
+  Eigen::Vector3d a_fb = Kpos_.asDiagonal() * pos_error + Kvel_.asDiagonal() * vel_error; //feedforward term for trajectory error
   if(a_fb.norm() > max_fb_acc_) a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb; //Clip acceleration if reference is too large
-  a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
-  a_des = a_fb + a_ref - a_rd - g_;
+  
+  const Eigen::Vector3d a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
+  const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - g_;
 
-  setDesiredAcceleration(a_des); //Pass desired acceleration to geometric attitude controller
+  q_des = acc2quaternion(a_des, mavYaw_);
+  cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+
 }
 
-void geometricCtrl::setDesiredAcceleration(Eigen::Vector3d acc_desired){
-  q_des = acc2quaternion(acc_desired, mavYaw_);
-  cmdBodyRate_ = attcontroller(q_des, acc_desired, mavAtt_); //Calculate BodyRate
-}
-
-Eigen::Vector4d geometricCtrl::quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p) {
+Eigen::Vector4d geometricCtrl::quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p) {
    Eigen::Vector4d quat;
   quat << p(0) * q(0) - p(1) * q(1) - p(2) * q(2) - p(3) * q(3),
           p(0) * q(1) + p(1) * q(0) - p(2) * q(3) + p(3) * q(2),
@@ -340,7 +342,7 @@ Eigen::Vector4d geometricCtrl::quatMultiplication(Eigen::Vector4d &q, Eigen::Vec
   return quat;
 }
 
-Eigen::Matrix3d geometricCtrl::quat2RotMatrix(Eigen::Vector4d q){
+Eigen::Matrix3d geometricCtrl::quat2RotMatrix(const Eigen::Vector4d q){
   Eigen::Matrix3d rotmat;
   rotmat << q(0) * q(0) + q(1) * q(1) - q(2) * q(2) - q(3) * q(3),
     2 * q(1) * q(2) - 2 * q(0) * q(3),
@@ -356,7 +358,7 @@ Eigen::Matrix3d geometricCtrl::quat2RotMatrix(Eigen::Vector4d q){
   return rotmat;
 }
 
-Eigen::Vector4d geometricCtrl::rot2Quaternion(Eigen::Matrix3d R){
+Eigen::Vector4d geometricCtrl::rot2Quaternion(const Eigen::Matrix3d R){
   Eigen::Vector4d quat;
   double tr = R.trace();
   if (tr > 0.0) {
@@ -387,7 +389,7 @@ Eigen::Vector4d geometricCtrl::rot2Quaternion(Eigen::Matrix3d R){
   return quat;
 }
 
-Eigen::Vector4d geometricCtrl::acc2quaternion(Eigen::Vector3d vector_acc, double yaw) {
+Eigen::Vector4d geometricCtrl::acc2quaternion(const Eigen::Vector3d vector_acc, double yaw) {
   Eigen::Vector4d quat;
   Eigen::Vector3d zb_des, yb_des, xb_des, proj_xb_des;
   Eigen::Matrix3d rotmat;
@@ -405,11 +407,12 @@ Eigen::Vector4d geometricCtrl::acc2quaternion(Eigen::Vector3d vector_acc, double
   return quat;
 }
 
-Eigen::Vector4d geometricCtrl::attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att){
+Eigen::Vector4d geometricCtrl::attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att){
   Eigen::Vector4d ratecmd;
   Eigen::Vector4d qe, q_inv, inverse;
   Eigen::Matrix3d rotmat;
   Eigen::Vector3d zb;
+
   inverse << 1.0, -1.0, -1.0, -1.0;
   q_inv = inverse.asDiagonal() * curr_att;
   qe = quatMultiplication(q_inv, ref_att);
@@ -432,8 +435,8 @@ void geometricCtrl::getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen:
 }
 
 void geometricCtrl::getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel){
-  pos = errorPos_;
-  vel = errorVel_;
+  pos = mavPos_ - targetPos_;
+  vel = mavVel_ - targetVel_;
 }
 
 bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req,
