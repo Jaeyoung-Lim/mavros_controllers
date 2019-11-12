@@ -79,7 +79,7 @@ class geometricCtrl
     bool fail_detec_, ctrl_enable_, feedthrough_enable_;
     int ctrl_mode_;
     bool landing_commanded_;
-    bool sim_enable_, use_dob_;
+    bool sim_enable_;
     bool velocity_yaw_;
     double kp_rot_, kd_rot_;
     double reference_request_dt_;
@@ -99,7 +99,7 @@ class geometricCtrl
     Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
     Eigen::Vector3d mavPos_, mavVel_, mavRate_;
     double mavYaw_;
-    Eigen::Vector3d a_des, a_fb, a_ref, a_rd, a_dob, g_;
+    Eigen::Vector3d a_des, a_fb, a_ref, a_rd, g_;
     Eigen::Vector4d mavAtt_, q_ref, q_des;
     Eigen::Vector4d cmdBodyRate_; //{wx, wy, wz, Thrust}
     Eigen::Vector3d Kpos_, Kvel_, D_;
