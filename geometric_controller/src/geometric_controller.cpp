@@ -56,6 +56,10 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
 
   targetPos_ << 0.0, 0.0, 2.0; //Initial Position
   targetVel_ << 0.0, 0.0, 0.0;
+  errorPos_ << 0.0, 0.0, 0.0;
+  errorVel_ << 0.0, 0.0, 0.0;
+  mavPos_ << 0.0, 0.0, 0.0;
+  mavVel_ << 0.0, 0.0, 0.0;
   g_ << 0.0, 0.0, -9.8;
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
   Kvel_ << -Kvel_x_, -Kvel_y_, -Kvel_z_;
