@@ -80,8 +80,8 @@ void geometricCtrl::targetCallback(const geometry_msgs::TwistStamped& msg) {
   reference_request_now_ = ros::Time::now();
   reference_request_dt_ = (reference_request_now_ - reference_request_last_).toSec();
 
-  targetPos_ << msg.twist.angular.x, msg.twist.angular.y, msg.twist.angular.z;
-  targetVel_ << msg.twist.linear.x, msg.twist.linear.y, msg.twist.linear.z;
+  targetPos_ = toEigen(msg.twist.angular);
+  targetVel_ = toEigen(msg.twist.linear);
 
   if(reference_request_dt_ > 0) targetAcc_ = (targetVel_ - targetVel_prev_ ) / reference_request_dt_;
   else targetAcc_ = Eigen::Vector3d::Zero();
@@ -98,32 +98,31 @@ void geometricCtrl::flattargetCallback(const controller_msgs::FlatTarget& msg) {
   reference_request_now_ = ros::Time::now();
   reference_request_dt_ = (reference_request_now_ - reference_request_last_).toSec();
 
-  targetPos_ << msg.position.x, msg.position.y, msg.position.z;
-  targetVel_ << msg.velocity.x, msg.velocity.y, msg.velocity.z;
+  targetPos_ = toEigen(msg.position);
+  targetVel_ = toEigen(msg.velocity);
 
   if(msg.type_mask == 1) {
-
-    targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
-    targetJerk_ << msg.jerk.x, msg.jerk.y, msg.jerk.z;
-    targetSnap_ << 0.0, 0.0, 0.0;
+    targetAcc_ = toEigen(msg.acceleration);
+    targetJerk_ = toEigen(msg.jerk);
+    targetSnap_ = Eigen::Vector3d::Zero();
 
   } else if (msg.type_mask == 2) {
 
-    targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
-    targetJerk_ << 0.0, 0.0, 0.0;
-    targetSnap_ << 0.0, 0.0, 0.0;
+    targetAcc_ = Eigen::Vector3d::Zero();
+    targetJerk_ = Eigen::Vector3d::Zero();
+    targetSnap_ = Eigen::Vector3d::Zero();
 
   } else if (msg.type_mask == 4) {
 
-    targetAcc_ << 0.0, 0.0, 0.0;
-    targetJerk_ << 0.0, 0.0, 0.0;
-    targetSnap_ << 0.0, 0.0, 0.0;
+    targetAcc_ = Eigen::Vector3d::Zero();
+    targetJerk_ = Eigen::Vector3d::Zero();
+    targetSnap_ = Eigen::Vector3d::Zero();
 
   } else {
 
-    targetAcc_ << msg.acceleration.x, msg.acceleration.y, msg.acceleration.z;
-    targetJerk_ << msg.jerk.x, msg.jerk.y, msg.jerk.z;
-    targetSnap_ << msg.snap.x, msg.snap.y, msg.snap.z;
+    targetAcc_ = toEigen(msg.acceleration);
+    targetJerk_ = toEigen(msg.jerk);
+    targetSnap_ = toEigen(msg.snap);
 
   }
 }
@@ -147,8 +146,8 @@ void geometricCtrl::multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTr
   targetVel_ << pt.velocities[0].linear.x, pt.velocities[0].linear.y, pt.velocities[0].linear.z;
 
   targetAcc_ << pt.accelerations[0].linear.x, pt.accelerations[0].linear.y, pt.accelerations[0].linear.z;
-  targetJerk_ << 0.0, 0.0, 0.0;
-  targetSnap_ << 0.0, 0.0, 0.0;
+  targetJerk_ = Eigen::Vector3d::Zero();
+  targetSnap_ = Eigen::Vector3d::Zero();
 }
 
 void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
@@ -157,23 +156,16 @@ void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
       home_pose_ = msg.pose;
       ROS_INFO_STREAM("Home pose initialized to: " << home_pose_);
   }
-  mavPos_(0) = msg.pose.position.x;
-  mavPos_(1) = msg.pose.position.y;
-  mavPos_(2) = msg.pose.position.z;
+  mavPos_ = toEigen(msg.pose.position);
   mavAtt_(0) = msg.pose.orientation.w;
   mavAtt_(1) = msg.pose.orientation.x;
   mavAtt_(2) = msg.pose.orientation.y;
   mavAtt_(3) = msg.pose.orientation.z;
 }
 
-void geometricCtrl::mavtwistCallback(const geometry_msgs::TwistStamped& msg){
-  
-  mavVel_(0) = msg.twist.linear.x;
-  mavVel_(1) = msg.twist.linear.y;
-  mavVel_(2) = msg.twist.linear.z;
-  mavRate_(0) = msg.twist.angular.x;
-  mavRate_(1) = msg.twist.angular.y;
-  mavRate_(2) = msg.twist.angular.z;
+void geometricCtrl::mavtwistCallback(const geometry_msgs::TwistStamped& msg){  
+  mavVel_ = toEigen(msg.twist.linear);
+  mavRate_ = toEigen(msg.twist.angular);
   
 }
 
@@ -190,7 +182,7 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
       break;
   case MISSION_EXECUTION:
   
-    if(!feedthrough_enable_)  computeBodyRateCmd();
+    if(!feedthrough_enable_)  computeBodyRateCmd(cmdBodyRate_);
     pubReferencePose(targetPos_, q_des);
     pubRateCommands(cmdBodyRate_);
     appendPoseHistory();
@@ -311,7 +303,7 @@ geometry_msgs::PoseStamped geometricCtrl::vector3d2PoseStampedMsg(Eigen::Vector3
 }
 
 
-void geometricCtrl::computeBodyRateCmd(){
+void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd){
 
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
@@ -329,7 +321,7 @@ void geometricCtrl::computeBodyRateCmd(){
   const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - g_;
 
   q_des = acc2quaternion(a_des, mavYaw_);
-  cmdBodyRate_ = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+  bodyrate_cmd = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
 
 }
 

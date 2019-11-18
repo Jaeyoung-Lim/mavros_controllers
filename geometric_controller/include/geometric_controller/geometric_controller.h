@@ -129,6 +129,19 @@ class geometricCtrl
     Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d R);
     Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d q);
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
+    void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd);
+    Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p);
+    Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
+
+    inline Eigen::Vector3d toEigen(const geometry_msgs::Point& p) {
+      Eigen::Vector3d ev3(p.x, p.y, p.z);
+      return ev3;
+    }
+
+    inline Eigen::Vector3d toEigen(const geometry_msgs::Vector3& v3) {
+      Eigen::Vector3d ev3(v3.x, v3.y, v3.z);
+      return ev3;
+    }
 
     enum FlightState {
       WAITING_FOR_HOME_POSE, MISSION_EXECUTION, LANDING, LANDED
@@ -149,14 +162,12 @@ class geometricCtrl
   public:
     void dynamicReconfigureCallback(geometric_controller::GeometricControllerConfig &config,uint32_t level);
     geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
-    void computeBodyRateCmd();
-    Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p);
-    Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
     void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel);
     void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel);
     void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
     void setFeedthrough(bool feed_through);
     virtual ~ geometricCtrl();
+    
 };
 
 
