@@ -91,27 +91,24 @@ class geometricCtrl
     mavros_msgs::State current_state_;
     mavros_msgs::SetMode offb_set_mode_;
     mavros_msgs::CommandBool arm_cmd_;
-    mavros_msgs::AttitudeTarget angularVelMsg_;
-    geometry_msgs::PoseStamped referencePoseMsg_;
     std::vector<geometry_msgs::PoseStamped> posehistory_vector_;
     MAV_STATE companion_state_ = MAV_STATE::MAV_STATE_ACTIVE;
 
     Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
     Eigen::Vector3d mavPos_, mavVel_, mavRate_;
     double mavYaw_;
-    Eigen::Vector3d a_des, a_fb, a_ref, a_rd, g_;
-    Eigen::Vector4d mavAtt_, q_ref, q_des;
+    Eigen::Vector3d g_;
+    Eigen::Vector4d mavAtt_, q_des;
     Eigen::Vector4d cmdBodyRate_; //{wx, wy, wz, Thrust}
     Eigen::Vector3d Kpos_, Kvel_, D_;
     Eigen::Vector3d a0, a1, tau;
-    Eigen::Vector3d errorPos_, errorVel_;
     double tau_x, tau_y, tau_z;
     double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
     int posehistory_window_;
 
     void pubMotorCommands();
-    void pubRateCommands();
-    void pubReferencePose();
+    void pubRateCommands(const Eigen::Vector4d &cmd);
+    void pubReferencePose(const Eigen::Vector3d &target_position, const Eigen::Vector4d &target_attitude);
     void pubPoseHistory();
     void pubSystemStatus();
     void appendPoseHistory();
@@ -128,10 +125,23 @@ class geometricCtrl
     void statusloopCallback(const ros::TimerEvent& event);
     bool ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
     bool landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response);
-    Eigen::Vector4d acc2quaternion(Eigen::Vector3d vector_acc, double yaw);
-    Eigen::Vector4d rot2Quaternion(Eigen::Matrix3d R);
-    Eigen::Matrix3d quat2RotMatrix(Eigen::Vector4d q);
+    Eigen::Vector4d acc2quaternion(const Eigen::Vector3d vector_acc, double yaw);
+    Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d R);
+    Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d q);
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
+    void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd);
+    Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p);
+    Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
+
+    inline Eigen::Vector3d toEigen(const geometry_msgs::Point& p) {
+      Eigen::Vector3d ev3(p.x, p.y, p.z);
+      return ev3;
+    }
+
+    inline Eigen::Vector3d toEigen(const geometry_msgs::Vector3& v3) {
+      Eigen::Vector3d ev3(v3.x, v3.y, v3.z);
+      return ev3;
+    }
 
     enum FlightState {
       WAITING_FOR_HOME_POSE, MISSION_EXECUTION, LANDING, LANDED
@@ -152,15 +162,12 @@ class geometricCtrl
   public:
     void dynamicReconfigureCallback(geometric_controller::GeometricControllerConfig &config,uint32_t level);
     geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
-    void computeBodyRateCmd(bool ctrl_mode);
-    Eigen::Vector4d quatMultiplication(Eigen::Vector4d &q, Eigen::Vector4d &p);
-    Eigen::Vector4d attcontroller(Eigen::Vector4d &ref_att, Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
     void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel);
     void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel);
     void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
     void setFeedthrough(bool feed_through);
-    void setDesiredAcceleration(Eigen::Vector3d acc_desired);
     virtual ~ geometricCtrl();
+    
 };
 
 
