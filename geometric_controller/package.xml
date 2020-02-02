@@ -19,7 +19,10 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>controller_msgs</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>mavros</build_depend>
+  <build_depend>mavros_extras</build_depend>
   <build_depend>mavros_msgs</build_depend>
+  <build_depend>mavros_extras</build_depend>
   <build_depend> eigen_catkin</build_depend>
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>roscpp</run_depend>
@@ -31,6 +34,7 @@
   <run_depend>nav_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>mavros</run_depend>
+  <run_depend>mavros_extras</run_depend>
   <run_depend>mavros_msgs</run_depend>
 
 
