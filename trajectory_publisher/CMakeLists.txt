@@ -11,9 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
   mavros_extras
   mavros_msgs
   mavlink
+  controller_msgs
 )
 
-include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
+include_directories(
+  include
+  ${Boost_INCLUDE_DIR}
+  ${catkin_INCLUDE_DIRS}
+)
 
 ############
 # BINARIES #
@@ -25,7 +30,7 @@ add_executable(trajectory_publisher
         src/polynomialtrajectory.cpp
         src/shapetrajectory.cpp
 )
-
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 ##########
 # EXPORT #
