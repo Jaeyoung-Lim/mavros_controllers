@@ -125,8 +125,6 @@ class geometricCtrl
     void statusloopCallback(const ros::TimerEvent& event);
     bool ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
     bool landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response);
-    Eigen::Vector4d acc2quaternion(const Eigen::Vector3d vector_acc, double yaw);
-    Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d R);
     Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d q);
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
     void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd);
@@ -167,7 +165,10 @@ class geometricCtrl
     void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
     void setFeedthrough(bool feed_through);
     virtual ~ geometricCtrl();
-    
+
+    static Eigen::Vector4d acc2quaternion(const Eigen::Vector3d vector_acc, double yaw);
+    static Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d R);
+
 };
 
 

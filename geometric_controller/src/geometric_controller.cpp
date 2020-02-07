@@ -308,6 +308,11 @@ void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd){
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
   const Eigen::Vector3d a_ref = targetAcc_;
+  double yaw;
+  if(velocity_yaw_) {
+    mavYaw_ = std::atan2(-1.0 * mavVel_(1), mavVel_(0));
+  }
+
   const Eigen::Vector4d q_ref = acc2quaternion(a_ref - g_, mavYaw_);
   const Eigen::Matrix3d R_ref = quat2RotMatrix(q_ref);
 
@@ -386,8 +391,8 @@ Eigen::Vector4d geometricCtrl::acc2quaternion(const Eigen::Vector3d vector_acc, 
   Eigen::Vector3d zb_des, yb_des, xb_des, proj_xb_des;
   Eigen::Matrix3d rotmat;
 
-  if(velocity_yaw_) proj_xb_des = targetVel_.normalized();
-  else proj_xb_des << std::cos(yaw), std::sin(yaw), 0.0;
+  proj_xb_des << std::cos(yaw), std::sin(yaw), 0.0;
+
   zb_des = vector_acc / vector_acc.norm();
   yb_des = zb_des.cross(proj_xb_des) / (zb_des.cross(proj_xb_des)).norm();
   xb_des = yb_des.cross(zb_des) / ( yb_des.cross(zb_des) ).norm();
