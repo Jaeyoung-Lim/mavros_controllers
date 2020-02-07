@@ -206,16 +206,6 @@ void trajectoryPublisher::motionselectorCallback(const std_msgs::Int32& selector
 
 }
 
-void trajectoryPublisher::trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_msg) {
-
-  start_time_ = ros::Time::now();
-  //TODO: implement a trajectory replay functionality
-//  segments_message.segments;
-//
-//  motionPrimitives_.setPolynomial();
-
-}
-
 void trajectoryPublisher::mavposeCallback(const geometry_msgs::PoseStamped& msg){
 
   p_mav_(0) = msg.pose.position.x;

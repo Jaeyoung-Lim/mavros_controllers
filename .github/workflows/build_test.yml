@@ -1,0 +1,41 @@
+
+name: Build Test
+on: [push]
+
+jobs:
+  kineticbuild:
+    runs-on: ubuntu-latest
+    container: px4io/px4-dev-ros-kinetic:2019-10-24
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: release_build_test
+      working-directory: 
+      run: |
+        apt update
+        apt install -y python3-wstool
+        mkdir -p $HOME/catkin_ws/src;
+        cd $HOME/catkin_ws
+        catkin init
+        catkin config --extend "/opt/ros/kinetic"
+        catkin config --merge-devel
+        cd $HOME/catkin_ws/src
+        ln -s $GITHUB_WORKSPACE
+        cd $HOME/catkin_ws
+        wstool init src src/mavros_controllers/dependencies.rosinstall
+        wstool update -t src -j4
+        rosdep update
+        rosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_ENABLE_TESTING=False
+        catkin build -j$(nproc) -l$(nproc) geometric_controller trajectory_publisher
+    - name: unit_tests
+      working-directory:
+      run: |
+        cd $HOME/catkin_ws/src
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCATKIN_ENABLE_TESTING=True
+        catkin build geometric_controller trajectory_publisher --no-deps -v -i --catkin-make-args tests
+        source $HOME/catkin_ws/devel/setup.bash
+        status=0 && for f in $HOME/catkin_ws/devel/lib/*/*-test; do $f || exit 1; done
+      shell: bash

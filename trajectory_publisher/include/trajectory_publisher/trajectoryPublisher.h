@@ -17,7 +17,6 @@
 #include <std_srvs/SetBool.h>
 #include <nav_msgs/Path.h>
 #include <mavros_msgs/PositionTarget.h>
-#include <mav_planning_msgs/PolynomialTrajectory4D.h>
 #include "controller_msgs/FlatTarget.h"
 #include "trajectory_publisher/trajectory.h"
 #include "trajectory_publisher/polynomialtrajectory.h"
@@ -81,7 +80,6 @@ public:
   void loopCallback(const ros::TimerEvent& event);
   void refCallback(const ros::TimerEvent& event);
   bool triggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
-  void trajectoryCallback(const mav_planning_msgs::PolynomialTrajectory4D& segments_message);
   void motionselectorCallback(const std_msgs::Int32& selector);
   void mavposeCallback(const geometry_msgs::PoseStamped& msg);
   void mavtwistCallback(const geometry_msgs::TwistStamped& msg);
