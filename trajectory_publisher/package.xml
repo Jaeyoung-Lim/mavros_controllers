@@ -33,7 +33,7 @@
   <run_depend>tf</run_depend>
   <run_depend>mav_planning_msgs</run_depend>
   <run_depend>mavros_msgs</run_depend>
-
+  <run_depend>controller_msgs</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
