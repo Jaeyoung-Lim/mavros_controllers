@@ -14,6 +14,11 @@ find_package(catkin REQUIRED COMPONENTS
   controller_msgs
 )
 
+catkin_package(
+  INCLUDE_DIRS include
+  CATKIN_DEPENDS roscpp rospy std_msgs nav_msgs geometry_msgs tf mav_planning_msgs controller_msgs mavros_msgs
+)
+
 include_directories(
   include
   ${Boost_INCLUDE_DIR}
