@@ -33,9 +33,8 @@
 #include <dynamic_reconfigure/server.h>
 #include <geometric_controller/GeometricControllerConfig.h>
 
-#define MODE_ROTORTHRUST  1
-#define MODE_BODYRATE     2
-#define MODE_BODYTORQUE   3
+#define ERROR_QUATERNION  1
+#define ERROR_GEOMETRIC   2
 
 using namespace std;
 using namespace Eigen;
@@ -130,6 +129,7 @@ class geometricCtrl
     void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd);
     Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p);
     Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
+    Eigen::Vector4d geometric_attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
 
     inline Eigen::Vector3d toEigen(const geometry_msgs::Point& p) {
       Eigen::Vector3d ev3(p.x, p.y, p.z);
@@ -168,6 +168,8 @@ class geometricCtrl
 
     static Eigen::Vector4d acc2quaternion(const Eigen::Vector3d vector_acc, double yaw);
     static Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d R);
+    static Eigen::Matrix3d matrix_hat(const Eigen::Vector3d &v);
+    static Eigen::Vector3d matrix_hat_inv(const Eigen::Matrix3d &m);
 
 };
 

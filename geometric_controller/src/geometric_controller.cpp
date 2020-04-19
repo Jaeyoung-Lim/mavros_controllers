@@ -35,7 +35,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle& nh, const ros::NodeHandle& n
   land_service_ = nh_.advertiseService("land", &geometricCtrl::landCallback, this);
 
   nh_private_.param<string>("mavname", mav_name_, "iris");
-  nh_private_.param<int>("ctrl_mode", ctrl_mode_, MODE_BODYRATE);
+  nh_private_.param<int>("ctrl_mode", ctrl_mode_, ERROR_QUATERNION);
   nh_private_.param<bool>("enable_sim", sim_enable_, true);
   nh_private_.param<bool>("velocity_yaw", velocity_yaw_, false);
   nh_private_.param<double>("max_acc", max_fb_acc_, 9.0);
@@ -308,7 +308,6 @@ void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd){
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
   const Eigen::Vector3d a_ref = targetAcc_;
-  double yaw;
   if(velocity_yaw_) {
     mavYaw_ = std::atan2(-1.0 * mavVel_(1), mavVel_(0));
   }
@@ -326,7 +325,15 @@ void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd){
   const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - g_;
 
   q_des = acc2quaternion(a_des, mavYaw_);
-  bodyrate_cmd = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+
+  if(ctrl_mode_ == ERROR_GEOMETRIC) {
+    bodyrate_cmd = geometric_attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+
+  } else {
+    bodyrate_cmd = attcontroller(q_des, a_des, mavAtt_); //Calculate BodyRate
+
+  }
+
 
 }
 
@@ -405,6 +412,9 @@ Eigen::Vector4d geometricCtrl::acc2quaternion(const Eigen::Vector3d vector_acc, 
 }
 
 Eigen::Vector4d geometricCtrl::attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att){
+  // Geometric attitude controller
+  // Attitude error is defined as in Brescianini, Dario, Markus Hehn, and Raffaello D'Andrea. Nonlinear quadrocopter attitude control: Technical report. ETH Zurich, 2013.
+
   Eigen::Vector4d ratecmd;
   Eigen::Vector4d qe, q_inv, inverse;
   Eigen::Matrix3d rotmat;
@@ -421,6 +431,45 @@ Eigen::Vector4d geometricCtrl::attcontroller(const Eigen::Vector4d &ref_att, con
   ratecmd(3) = std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb) + norm_thrust_offset_)); //Calculate thrust
 
   return ratecmd;
+}
+
+Eigen::Vector4d geometricCtrl::geometric_attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att){
+  // Geometric attitude controller
+  // Attitude error is defined as in Lee, Taeyoung, Melvin Leok, and N. Harris McClamroch. "Geometric tracking control of a quadrotor UAV on SE (3)." 49th IEEE conference on decision and control (CDC). IEEE, 2010.  
+  // The original paper inputs moment commands, but for offboard control angular rate commands are sent
+
+  Eigen::Vector4d ratecmd;
+  Eigen::Matrix3d rotmat; //Rotation matrix of current atttitude
+  Eigen::Matrix3d rotmat_d; //Rotation matrix of desired attitude
+  Eigen::Vector3d zb;
+  Eigen::Vector3d error_att;
+
+  rotmat = quat2RotMatrix(curr_att);
+  rotmat_d = quat2RotMatrix(ref_att);
+
+  error_att = 0.5 * matrix_hat_inv(rotmat_d.transpose() * rotmat - rotmat.transpose() * rotmat);
+  ratecmd.head(3) = (2.0 / attctrl_tau_) * error_att;
+  rotmat = quat2RotMatrix(mavAtt_);
+  zb = rotmat.col(2);
+  ratecmd(3) = std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb) + norm_thrust_offset_)); //Calculate thrust
+
+  return ratecmd;
+}
+
+Eigen::Matrix3d geometricCtrl::matrix_hat(const Eigen::Vector3d &v) {
+  Eigen::Matrix3d m;
+  //Sanity checks on M
+  m << 0.0, -v(2), v(1),
+      v(2), 0.0, -v(0),
+      -v(1), v(0), 0.0;
+  return m;
+}
+
+Eigen::Vector3d geometricCtrl::matrix_hat_inv(const Eigen::Matrix3d &m) {
+  Eigen::Vector3d v;
+  //TODO: Sanity checks if m is skew symmetric
+  v << m(7), m(2), m(3);
+  return v;
 }
 
 void geometricCtrl::getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel){
