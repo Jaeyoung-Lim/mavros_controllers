@@ -145,17 +145,22 @@ void trajectoryPublisher::pubflatrefState() {
   flatreferencePub_.publish(msg);
 }
 
-void trajectoryPublisher::pubrefSetpointRaw() {
+void trajectoryPublisher::pubrefSetpointRaw(){
+  using mavlink::common::POSITION_TARGET_TYPEMASK;
+
   mavros_msgs::PositionTarget msg;
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
-  msg.type_mask = 64;
+  msg.type_mask = 0;
   msg.position.x = p_targ(0);
   msg.position.y = p_targ(1);
   msg.position.z = p_targ(2);
   msg.velocity.x = v_targ(0);
   msg.velocity.y = v_targ(1);
   msg.velocity.z = v_targ(2);
+  msg.acceleration_or_force.x = a_targ(0);
+  msg.acceleration_or_force.y = a_targ(1);
+  msg.acceleration_or_force.z = a_targ(2);
   rawreferencePub_.publish(msg);
 }
 

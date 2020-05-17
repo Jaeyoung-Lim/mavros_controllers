@@ -17,6 +17,7 @@
 #include <std_msgs/Int32.h>
 #include <std_msgs/String.h>
 #include <std_srvs/SetBool.h>
+#include <mavconn/mavlink_dialect.h>
 #include "controller_msgs/FlatTarget.h"
 #include "trajectory_publisher/polynomialtrajectory.h"
 #include "trajectory_publisher/shapetrajectory.h"
