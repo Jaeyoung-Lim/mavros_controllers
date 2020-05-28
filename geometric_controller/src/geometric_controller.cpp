@@ -175,33 +175,35 @@ bool geometricCtrl::landCallback(std_srvs::SetBool::Request& request, std_srvs::
 
 void geometricCtrl::cmdloopCallback(const ros::TimerEvent& event){
   switch (node_state) {
-  case WAITING_FOR_HOME_POSE:
+    case WAITING_FOR_HOME_POSE:
       waitForPredicate(&received_home_pose, "Waiting for home pose...");
       ROS_INFO("Got pose! Drone Ready to be armed.");
       node_state = MISSION_EXECUTION;
       break;
-  case MISSION_EXECUTION:
-  
-    if(!feedthrough_enable_)  computeBodyRateCmd(cmdBodyRate_);
-    pubReferencePose(targetPos_, q_des);
-    pubRateCommands(cmdBodyRate_);
-    appendPoseHistory();
-    pubPoseHistory();
-    break;
-  case LANDING: {
-    geometry_msgs::PoseStamped landingmsg;
-    landingmsg.header.stamp = ros::Time::now();
-    landingmsg.pose = home_pose_;
-    landingmsg.pose.position.z = landingmsg.pose.position.z + 1.0;
-    target_pose_pub_.publish(landingmsg);
-    node_state = LANDED;
-    ros::spinOnce();
-    break;
-  }
-  case LANDED:
-    ROS_INFO("Landed. Please set to position control and disarm.");
-    cmdloop_timer_.stop();
-    break;
+
+    case MISSION_EXECUTION:
+      if(!feedthrough_enable_)  computeBodyRateCmd(cmdBodyRate_, targetPos_, targetVel_, targetAcc_);
+      pubReferencePose(targetPos_, q_des);
+      pubRateCommands(cmdBodyRate_);
+      appendPoseHistory();
+      pubPoseHistory();
+      break;
+
+    case LANDING: {
+      geometry_msgs::PoseStamped landingmsg;
+      landingmsg.header.stamp = ros::Time::now();
+      landingmsg.pose = home_pose_;
+      landingmsg.pose.position.z = landingmsg.pose.position.z + 1.0;
+      target_pose_pub_.publish(landingmsg);
+      node_state = LANDED;
+      ros::spinOnce();
+      break;
+
+    }
+    case LANDED:
+      ROS_INFO("Landed. Please set to position control and disarm.");
+      cmdloop_timer_.stop();
+      break;
   }
 }
 
@@ -303,11 +305,11 @@ geometry_msgs::PoseStamped geometricCtrl::vector3d2PoseStampedMsg(Eigen::Vector3
 }
 
 
-void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd){
+void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_pos, const Eigen::Vector3d &target_vel, const Eigen::Vector3d &target_acc){
 
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
-  const Eigen::Vector3d a_ref = targetAcc_;
+  const Eigen::Vector3d a_ref = target_acc;
   if(velocity_yaw_) {
     mavYaw_ = std::atan2(-1.0 * mavVel_(1), mavVel_(0));
   }
@@ -315,13 +317,13 @@ void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd){
   const Eigen::Vector4d q_ref = acc2quaternion(a_ref - g_, mavYaw_);
   const Eigen::Matrix3d R_ref = quat2RotMatrix(q_ref);
 
-  const Eigen::Vector3d pos_error = mavPos_ - targetPos_;
-  const Eigen::Vector3d vel_error = mavVel_ - targetVel_;
+  const Eigen::Vector3d pos_error = mavPos_ - target_pos;
+  const Eigen::Vector3d vel_error = mavVel_ - target_vel;
 
   Eigen::Vector3d a_fb = Kpos_.asDiagonal() * pos_error + Kvel_.asDiagonal() * vel_error; //feedforward term for trajectory error
   if(a_fb.norm() > max_fb_acc_) a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb; //Clip acceleration if reference is too large
   
-  const Eigen::Vector3d a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * targetVel_; //Rotor drag
+  const Eigen::Vector3d a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * target_vel; //Rotor drag
   const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - g_;
 
   q_des = acc2quaternion(a_des, mavYaw_);
@@ -346,7 +348,7 @@ Eigen::Vector4d geometricCtrl::quatMultiplication(const Eigen::Vector4d &q, cons
   return quat;
 }
 
-Eigen::Matrix3d geometricCtrl::quat2RotMatrix(const Eigen::Vector4d q){
+Eigen::Matrix3d geometricCtrl::quat2RotMatrix(const Eigen::Vector4d &q){
   Eigen::Matrix3d rotmat;
   rotmat << q(0) * q(0) + q(1) * q(1) - q(2) * q(2) - q(3) * q(3),
     2 * q(1) * q(2) - 2 * q(0) * q(3),
@@ -362,7 +364,7 @@ Eigen::Matrix3d geometricCtrl::quat2RotMatrix(const Eigen::Vector4d q){
   return rotmat;
 }
 
-Eigen::Vector4d geometricCtrl::rot2Quaternion(const Eigen::Matrix3d R){
+Eigen::Vector4d geometricCtrl::rot2Quaternion(const Eigen::Matrix3d &R){
   Eigen::Vector4d quat;
   double tr = R.trace();
   if (tr > 0.0) {
@@ -393,7 +395,7 @@ Eigen::Vector4d geometricCtrl::rot2Quaternion(const Eigen::Matrix3d R){
   return quat;
 }
 
-Eigen::Vector4d geometricCtrl::acc2quaternion(const Eigen::Vector3d vector_acc, double yaw) {
+Eigen::Vector4d geometricCtrl::acc2quaternion(const Eigen::Vector3d &vector_acc, const double &yaw) {
   Eigen::Vector4d quat;
   Eigen::Vector3d zb_des, yb_des, xb_des, proj_xb_des;
   Eigen::Matrix3d rotmat;
