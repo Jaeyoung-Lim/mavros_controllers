@@ -124,9 +124,9 @@ class geometricCtrl
     void statusloopCallback(const ros::TimerEvent& event);
     bool ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
     bool landCallback(std_srvs::SetBool::Request& request, std_srvs::SetBool::Response& response);
-    Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d q);
+    Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d &q);
     geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
-    void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd);
+    void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_pos, const Eigen::Vector3d &target_vel, const Eigen::Vector3d &target_acc);
     Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p);
     Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
     Eigen::Vector4d geometric_attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att);
@@ -166,8 +166,8 @@ class geometricCtrl
     void setFeedthrough(bool feed_through);
     virtual ~ geometricCtrl();
 
-    static Eigen::Vector4d acc2quaternion(const Eigen::Vector3d vector_acc, double yaw);
-    static Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d R);
+    static Eigen::Vector4d acc2quaternion(const Eigen::Vector3d &vector_acc, const double &yaw);
+    static Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R);
     static Eigen::Matrix3d matrix_hat(const Eigen::Vector3d &v);
     static Eigen::Vector3d matrix_hat_inv(const Eigen::Matrix3d &m);
 
