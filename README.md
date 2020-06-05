@@ -49,6 +49,10 @@ This folder will probably be already created since the previous process would ha
 
 ```bash
 mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws
+catkin init
+catkin config --merge-devel
+wstool init
 ```
 
 ###### Clone this repository
