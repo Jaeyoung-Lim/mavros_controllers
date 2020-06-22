@@ -166,6 +166,7 @@ class geometricCtrl
     void setFeedthrough(bool feed_through);
     virtual ~ geometricCtrl();
 
+    static double getVelocityYaw(const Eigen::Vector3d velocity);
     static Eigen::Vector4d acc2quaternion(const Eigen::Vector3d &vector_acc, const double &yaw);
     static Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R);
     static Eigen::Matrix3d matrix_hat(const Eigen::Vector3d &v);

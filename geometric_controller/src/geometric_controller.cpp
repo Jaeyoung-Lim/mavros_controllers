@@ -311,7 +311,7 @@ void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eige
   /// Controller based on Faessler 2017
   const Eigen::Vector3d a_ref = target_acc;
   if(velocity_yaw_) {
-    mavYaw_ = std::atan2(-1.0 * mavVel_(1), mavVel_(0));
+    mavYaw_ = getVelocityYaw(mavVel_);
   }
 
   const Eigen::Vector4d q_ref = acc2quaternion(a_ref - g_, mavYaw_);
@@ -411,6 +411,11 @@ Eigen::Vector4d geometricCtrl::acc2quaternion(const Eigen::Vector3d &vector_acc,
             xb_des(2), yb_des(2), zb_des(2);
   quat = rot2Quaternion(rotmat);
   return quat;
+}
+
+double geometricCtrl::getVelocityYaw(const Eigen::Vector3d velocity) {
+
+  return atan2(velocity(1), velocity(0));
 }
 
 Eigen::Vector4d geometricCtrl::attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &curr_att){
