@@ -30,3 +30,22 @@ TEST(GeometricControllerTest, acc2quaternion) {
   
   ASSERT_TRUE(attitude.isApprox(ref_attitude));
 }
+
+TEST(GeometricControllerTest, velocityyaw) {
+
+  Eigen::Vector3d vel_x(1.0, 0.0, 0.0);
+  double vel_x_yaw = geometricCtrl::getVelocityYaw(vel_x);
+  EXPECT_NEAR(0.0, vel_x_yaw, 0.0001);
+
+  Eigen::Vector3d vel_nx(-1.0, 0.0, 0.0);
+  double vel_nx_yaw = geometricCtrl::getVelocityYaw(vel_nx);
+  EXPECT_NEAR(M_PI, vel_nx_yaw, 0.0001);
+
+  Eigen::Vector3d vel_y(0.0, 1.0, 0.0);
+  double vel_y_yaw = geometricCtrl::getVelocityYaw(vel_y);
+  EXPECT_NEAR(M_PI_2, vel_y_yaw, 0.0001);
+
+  Eigen::Vector3d vel_ny(0.0, -1.0, 0.0);
+  double vel_ny_yaw = geometricCtrl::getVelocityYaw(vel_ny);
+  EXPECT_NEAR(-M_PI_2, vel_ny_yaw, 0.0001);
+}
