@@ -6,6 +6,7 @@
 #include <ros/ros.h>
 #include <ros/subscribe_options.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/tf.h>
 
 #include <stdio.h>
 #include <cstdlib>

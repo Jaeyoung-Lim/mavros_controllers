@@ -148,6 +148,18 @@ void geometricCtrl::multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTr
   targetAcc_ << pt.accelerations[0].linear.x, pt.accelerations[0].linear.y, pt.accelerations[0].linear.z;
   targetJerk_ = Eigen::Vector3d::Zero();
   targetSnap_ = Eigen::Vector3d::Zero();
+
+  if(!velocity_yaw_){
+    tf::Quaternion q(
+        pt.transforms[0].rotation.x,
+        pt.transforms[0].rotation.y,
+        pt.transforms[0].rotation.z,
+        pt.transforms[0].rotation.w);
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+    mavYaw_ = yaw;
+  }
 }
 
 void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
