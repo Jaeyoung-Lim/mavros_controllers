@@ -150,15 +150,9 @@ void geometricCtrl::multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTr
   targetSnap_ = Eigen::Vector3d::Zero();
 
   if(!velocity_yaw_){
-    tf::Quaternion q(
-        pt.transforms[0].rotation.x,
-        pt.transforms[0].rotation.y,
-        pt.transforms[0].rotation.z,
-        pt.transforms[0].rotation.w);
-    tf::Matrix3x3 m(q);
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw);
-    mavYaw_ = yaw;
+    Eigen::Quaterniond q(pt.transforms[0].rotation.w, pt.transforms[0].rotation.x, pt.transforms[0].rotation.y, pt.transforms[0].rotation.z);
+    Eigen::Vector3d rpy = Eigen::Matrix3d(q).eulerAngles(0,1,2); // RPY
+    mavYaw_ = rpy(2);
   }
 }
 
