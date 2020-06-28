@@ -148,6 +148,12 @@ void geometricCtrl::multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTr
   targetAcc_ << pt.accelerations[0].linear.x, pt.accelerations[0].linear.y, pt.accelerations[0].linear.z;
   targetJerk_ = Eigen::Vector3d::Zero();
   targetSnap_ = Eigen::Vector3d::Zero();
+
+  if(!velocity_yaw_){
+    Eigen::Quaterniond q(pt.transforms[0].rotation.w, pt.transforms[0].rotation.x, pt.transforms[0].rotation.y, pt.transforms[0].rotation.z);
+    Eigen::Vector3d rpy = Eigen::Matrix3d(q).eulerAngles(0,1,2); // RPY
+    mavYaw_ = rpy(2);
+  }
 }
 
 void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped& msg){
