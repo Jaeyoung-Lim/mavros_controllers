@@ -11,29 +11,29 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_private_(nh_private),
   motion_selector_(0) {
 
-  trajectoryPub_ = nh_.advertise<nav_msgs::Path>("/trajectory_publisher/trajectory", 1);
+  trajectoryPub_ = nh_.advertise<nav_msgs::Path>("trajectory_publisher/trajectory", 1);
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   flatreferencePub_ = nh_.advertise<controller_msgs::FlatTarget>("reference/flatsetpoint", 1);
-  rawreferencePub_ = nh_.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);
-  motionselectorSub_ = nh_.subscribe("/trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
-  mavposeSub_ = nh_.subscribe("/mavros/local_position/pose", 1, &trajectoryPublisher::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
-  mavtwistSub_ = nh_.subscribe("/mavros/local_position/velocity", 1, &trajectoryPublisher::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
+  rawreferencePub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 1);
+  motionselectorSub_ = nh_.subscribe("trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,ros::TransportHints().tcpNoDelay());
+  mavposeSub_ = nh_.subscribe("mavros/local_position/pose", 1, &trajectoryPublisher::mavposeCallback, this,ros::TransportHints().tcpNoDelay());
+  mavtwistSub_ = nh_.subscribe("mavros/local_position/velocity", 1, &trajectoryPublisher::mavtwistCallback, this,ros::TransportHints().tcpNoDelay());
 
   trajloop_timer_ = nh_.createTimer(ros::Duration(0.1), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
 
   trajtriggerServ_ = nh_.advertiseService("start", &trajectoryPublisher::triggerCallback, this);
 
-  nh_.param<double>("/trajectory_publisher/initpos_x", init_pos_x_, 0.0);
-  nh_.param<double>("/trajectory_publisher/initpos_y", init_pos_y_, 0.0);
-  nh_.param<double>("/trajectory_publisher/initpos_z", init_pos_z_, 1.0);
-  nh_.param<double>("/trajectory_publisher/updaterate", controlUpdate_dt_, 0.01);
-  nh_.param<double>("/trajectory_publisher/horizon", primitive_duration_, 1.0);
-  nh_.param<double>("/trajectory_publisher/maxjerk", max_jerk_, 10.0);
-  nh_.param<double>("/trajectory_publisher/shape_omega", shape_omega_, 1.5);
-  nh_.param<int>("/trajectory_publisher/trajectory_type", trajectory_type_, 0);
-  nh_.param<int>("/trajectory_publisher/number_of_primitives", num_primitives_, 7);
-  nh_.param<int>("/trajectory_publisher/reference_type", pubreference_type_, 2);
+  nh_private_.param<double>("initpos_x", init_pos_x_, 0.0);
+  nh_private_.param<double>("initpos_y", init_pos_y_, 0.0);
+  nh_private_.param<double>("initpos_z", init_pos_z_, 1.0);
+  nh_private_.param<double>("updaterate", controlUpdate_dt_, 0.01);
+  nh_private_.param<double>("horizon", primitive_duration_, 1.0);
+  nh_private_.param<double>("maxjerk", max_jerk_, 10.0);
+  nh_private_.param<double>("shape_omega", shape_omega_, 1.5);
+  nh_private_.param<int>("trajectory_type", trajectory_type_, 0);
+  nh_private_.param<int>("number_of_primitives", num_primitives_, 7);
+  nh_private_.param<int>("reference_type", pubreference_type_, 2);
 
 
   inputs_.resize(num_primitives_);
@@ -53,7 +53,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
 
     for(int i = 0;  i < num_primitives_; i++){
       motionPrimitives_.emplace_back(std::make_shared<polynomialtrajectory>());
-      primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset" + std::to_string(i), 1));
+      primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("trajectory_publisher/primitiveset" + std::to_string(i), 1));
       inputs_.at(i) = inputs_.at(i) * max_jerk_;
     }
   }
@@ -61,7 +61,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
 
     num_primitives_ = 1;
     motionPrimitives_.emplace_back(std::make_shared<shapetrajectory>(trajectory_type_));
-    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("/trajectory_publisher/primitiveset", 1));
+    primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("trajectory_publisher/primitiveset", 1));
   }
 
   p_targ << init_pos_x_, init_pos_y_, init_pos_z_;
