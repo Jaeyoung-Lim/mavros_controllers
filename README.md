@@ -10,7 +10,9 @@ The repository contains controllers for controlling MAVs using the mavros packag
 - controller_msgs: custom message definitions
 - trajectory_publisher: Node publishing setpoints as states from motion primitives / trajectories for the controller to follow.
 
-[![Hovering done](https://img.youtube.com/vi/FRaPGjX9m-c/0.jpg)](https://youtu.be/FRaPGjX9m-c "Hovering done")
+[![Multiple drone](https://user-images.githubusercontent.com/5248102/87020057-a3e25200-c1d3-11ea-9f76-cd010cb8329a.gif)](https://user-images.githubusercontent.com/5248102/87020057-a3e25200-c1d3-11ea-9f76-cd010cb8329a.gif)
+
+[![Hovering drone](https://img.youtube.com/vi/FRaPGjX9m-c/0.jpg)](https://youtu.be/FRaPGjX9m-c "Hovering done")
 
 [![Circular trajectory tracking](https://img.youtube.com/vi/IEyocdnlYw0/0.jpg)](https://youtu.be/IEyocdnlYw0 "Circular trajectory tracking")
 
