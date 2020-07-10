@@ -2,13 +2,12 @@
 
 #include "geometric_controller/geometric_controller.h"
 
-//using namespace RAI;
 int main(int argc, char** argv) {
-  ros::init(argc,argv,"geometric_controller");
+  ros::init(argc, argv, "geometric_controller");
   ros::NodeHandle nh("");
   ros::NodeHandle nh_private("~");
 
-  geometricCtrl *geometricController = new geometricCtrl(nh, nh_private);
+  geometricCtrl* geometricController = new geometricCtrl(nh, nh_private);
 
   dynamic_reconfigure::Server<geometric_controller::GeometricControllerConfig> srv;
   dynamic_reconfigure::Server<geometric_controller::GeometricControllerConfig>::CallbackType f;
