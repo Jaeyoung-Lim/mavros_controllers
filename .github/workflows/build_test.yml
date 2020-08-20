@@ -1,11 +1,23 @@
 
 name: Build Test
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - 'master'
+  pull_request:
+    branches:
+    - '*'
 
 jobs:
-  kineticbuild:
+  build:
     runs-on: ubuntu-latest
-    container: px4io/px4-dev-ros-kinetic:2019-10-24
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {rosdistro: 'kinetic', container: 'px4io/px4-dev-ros-kinetic:2020-07-18'} 
+          - {rosdistro: 'melodic', container: 'px4io/px4-dev-ros-melodic:2020-08-14'}
+    container: ${{ matrix.config.container }}
     steps:
     - uses: actions/checkout@v1
       with:
@@ -19,7 +31,7 @@ jobs:
         mkdir -p $HOME/catkin_ws/src;
         cd $HOME/catkin_ws
         catkin init
-        catkin config --extend "/opt/ros/kinetic"
+        catkin config --extend "/opt/ros/${{matrix.config.rosdistro}}"
         catkin config --merge-devel
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
@@ -27,7 +39,7 @@ jobs:
         wstool init src src/mavros_controllers/dependencies.rosinstall
         wstool update -t src -j4
         rosdep update
-        rosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO
+        rosdep install --from-paths src --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
         catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_ENABLE_TESTING=False
         catkin build -j$(nproc) -l$(nproc) geometric_controller trajectory_publisher
     - name: unit_tests
