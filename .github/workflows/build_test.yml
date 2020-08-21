@@ -17,6 +17,7 @@ jobs:
         config:
           - {rosdistro: 'kinetic', container: 'px4io/px4-dev-ros-kinetic:2020-07-18'} 
           - {rosdistro: 'melodic', container: 'px4io/px4-dev-ros-melodic:2020-08-14'}
+          - {rosdistro: 'noetic', container: 'px4io/px4-dev-ros-noetic:2020-08-20'}
     container: ${{ matrix.config.container }}
     steps:
     - uses: actions/checkout@v1
