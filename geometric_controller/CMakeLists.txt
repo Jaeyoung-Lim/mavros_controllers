@@ -60,6 +60,7 @@ target_link_libraries(geometric_controller_node ${PROJECT_NAME} ${catkin_LIBRARI
 if(CATKIN_ENABLE_TESTING)
     # Add gtest based cpp test target and link libraries
     catkin_add_gtest(${PROJECT_NAME}-test test/main.cpp
+                                          test/common-test.cpp
                                           test/test_example.cpp
                                           test/geometric_controller-test.cpp)
 
