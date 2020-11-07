@@ -1,5 +1,4 @@
-#ifndef COMMON_H
-#define COMMON_H
+#pragma once
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
@@ -80,5 +79,3 @@ Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R) {
   }
   return quat;
 }
-
-#endif
