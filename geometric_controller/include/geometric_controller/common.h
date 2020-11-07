@@ -120,5 +120,3 @@ Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R) {
   }
   return quat;
 }
-
-#endif
