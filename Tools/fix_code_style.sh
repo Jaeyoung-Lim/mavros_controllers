@@ -13,9 +13,9 @@ fi
 for arg in "$@"
 do
     if [ -f $arg ]; then
-        clang-format-4.0 -i -style='{BasedOnStyle: google, ColumnLimit: 120}' $arg
+        clang-format-6.0 -i -style='{BasedOnStyle: google, ColumnLimit: 120}' $arg
     elif [ -d $arg ]; then
-        find $arg -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | xargs clang-format-4.0 -i -style='{BasedOnStyle: google, ColumnLimit: 120}'
+        find $arg -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | xargs clang-format-6.0 -i -style='{BasedOnStyle: google, ColumnLimit: 120}'
         find $arg -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | xargs chmod 644
     fi
 done

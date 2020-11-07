@@ -13,7 +13,7 @@
 #define TRAJ_STATIONARY 3
 
 class shapetrajectory : public trajectory {
-private:
+ private:
   int type_;
   int N;
   double dt_;
@@ -23,7 +23,7 @@ private:
   Eigen::Vector3d traj_radial_;
   double traj_radius_, traj_omega_;
 
-public:
+ public:
   shapetrajectory(int type);
   virtual ~shapetrajectory();
   void initPrimitives(Eigen::Vector3d pos, Eigen::Vector3d axis, double omega);
@@ -34,9 +34,9 @@ public:
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
   Eigen::Vector3d getAcceleration(double time);
-  double getsamplingTime(){return dt_;};
-  double getDuration(){ return T_;};
+  double getsamplingTime() { return dt_; };
+  double getDuration() { return T_; };
   nav_msgs::Path getSegment();
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d position, Eigen::Vector4d orientation);
 };
-#endif //TRAJECTORY_PUBLISHER_SHAPETRAJECTORY_H
+#endif  // TRAJECTORY_PUBLISHER_SHAPETRAJECTORY_H
