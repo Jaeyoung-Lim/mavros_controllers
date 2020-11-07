@@ -6,33 +6,32 @@
 TEST(GeometricControllerTest, acc2quaternion) {
   Eigen::Vector3d acceleration;
   double yaw;
-  //Expected result;
+  // Expected result;
   Eigen::Vector4d ref_attitude;
   Eigen::Vector4d attitude;
 
-  //Condition
+  // Condition
   acceleration << 0.0, 0.0, 1.0;
   yaw = 0.0;
   // Expected outcome
   ref_attitude << 1.0, 0.0, 0.0, 0.0;
 
-  attitude = geometricCtrl::acc2quaternion(acceleration, yaw);  
-  
+  attitude = geometricCtrl::acc2quaternion(acceleration, yaw);
+
   ASSERT_TRUE(attitude.isApprox(ref_attitude));
 
-  //Condition
+  // Condition
   acceleration << 0.0, 0.0, 1.0;
   yaw = 1.5714;
   // Expected outcome
   ref_attitude << std::cos(0.5 * yaw), 0.0, 0.0, std::sin(0.5 * yaw);
 
   attitude = geometricCtrl::acc2quaternion(acceleration, yaw);
-  
+
   ASSERT_TRUE(attitude.isApprox(ref_attitude));
 }
 
 TEST(GeometricControllerTest, velocityyaw) {
-
   Eigen::Vector3d vel_x(1.0, 0.0, 0.0);
   double vel_x_yaw = geometricCtrl::getVelocityYaw(vel_x);
   EXPECT_NEAR(0.0, vel_x_yaw, 0.0001);

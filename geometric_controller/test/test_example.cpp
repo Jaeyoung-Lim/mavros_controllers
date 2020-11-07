@@ -48,7 +48,7 @@ void reverseInPlace(string &toReverse) {
     toReverse[j] = tmp;
   }
 }
-}
+}  // namespace myNormalCode
 
 TEST_F(StringTest, StrEqual) {
   // GIVEN: two strings that are the same
