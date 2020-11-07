@@ -32,6 +32,8 @@
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
 
+#include "geometric_controller/common.h"
+
 #define ERROR_QUATERNION 1
 #define ERROR_GEOMETRIC 2
 
@@ -123,25 +125,13 @@ class geometricCtrl {
   void statusloopCallback(const ros::TimerEvent &event);
   bool ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
   bool landCallback(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
-  Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d &q);
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
   void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_pos,
                           const Eigen::Vector3d &target_vel, const Eigen::Vector3d &target_acc);
-  Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p);
   Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
                                 Eigen::Vector4d &curr_att);
   Eigen::Vector4d geometric_attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
                                           Eigen::Vector4d &curr_att);
-
-  inline Eigen::Vector3d toEigen(const geometry_msgs::Point &p) {
-    Eigen::Vector3d ev3(p.x, p.y, p.z);
-    return ev3;
-  }
-
-  inline Eigen::Vector3d toEigen(const geometry_msgs::Vector3 &v3) {
-    Eigen::Vector3d ev3(v3.x, v3.y, v3.z);
-    return ev3;
-  }
 
   enum FlightState { WAITING_FOR_HOME_POSE, MISSION_EXECUTION, LANDING, LANDED } node_state;
 
@@ -160,17 +150,21 @@ class geometricCtrl {
  public:
   void dynamicReconfigureCallback(geometric_controller::GeometricControllerConfig &config, uint32_t level);
   geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private);
-  void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel);
-  void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel);
-  void setBodyRateCommand(Eigen::Vector4d bodyrate_command);
-  void setFeedthrough(bool feed_through);
   virtual ~geometricCtrl();
-
-  static double getVelocityYaw(const Eigen::Vector3d velocity);
+  void getStates(Eigen::Vector3d &pos, Eigen::Vector4d &att, Eigen::Vector3d &vel, Eigen::Vector3d &angvel) {
+    pos = mavPos_;
+    att = mavAtt_;
+    vel = mavVel_;
+    angvel = mavRate_;
+  };
+  void getErrors(Eigen::Vector3d &pos, Eigen::Vector3d &vel) {
+    pos = mavPos_ - targetPos_;
+    vel = mavVel_ - targetVel_;
+  };
+  void setBodyRateCommand(Eigen::Vector4d bodyrate_command) { cmdBodyRate_ = bodyrate_command; };
+  void setFeedthrough(bool feed_through) { feedthrough_enable_ = feed_through; };
   static Eigen::Vector4d acc2quaternion(const Eigen::Vector3d &vector_acc, const double &yaw);
-  static Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R);
-  static Eigen::Matrix3d matrix_hat(const Eigen::Vector3d &v);
-  static Eigen::Vector3d matrix_hat_inv(const Eigen::Matrix3d &m);
+  static double getVelocityYaw(const Eigen::Vector3d velocity) { return atan2(velocity(1), velocity(0)); };
 };
 
 #endif
