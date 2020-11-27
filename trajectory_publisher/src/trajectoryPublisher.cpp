@@ -145,9 +145,7 @@ void trajectoryPublisher::pubflatrefState() {
   flatreferencePub_.publish(msg);
 }
 
-void trajectoryPublisher::pubrefSetpointRaw(){
-  using mavlink::common::POSITION_TARGET_TYPEMASK;
-
+void trajectoryPublisher::pubrefSetpointRaw() {
   mavros_msgs::PositionTarget msg;
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
