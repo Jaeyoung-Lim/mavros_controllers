@@ -11,6 +11,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <mavconn/mavlink_dialect.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
