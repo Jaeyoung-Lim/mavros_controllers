@@ -34,7 +34,7 @@
  * @brief Geometric Controller
  *
  * Geometric controller
- * 
+ *
  * @author Jaeyoung Lim <jalim@ethz.ch>
  */
 

@@ -34,7 +34,7 @@
  * @brief Common library
  *
  * Common library for geometric controller
- * 
+ *
  * @author Jaeyoung Lim <jalim@ethz.ch>
  */
 

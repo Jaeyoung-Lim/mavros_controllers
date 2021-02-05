@@ -34,7 +34,7 @@
  * @brief Geometric Controller Node
  *
  * Geometric controller ROS Node Implementation
- * 
+ *
  * @author Jaeyoung Lim <jalim@ethz.ch>
  */
 
