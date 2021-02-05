@@ -36,7 +36,6 @@
  * @author Jaeyoung Lim <jalim@ethz.ch>
  */
 
-
 #ifndef TRAJECTORY_PUBLISHER_TRAJECTORY_H
 #define TRAJECTORY_PUBLISHER_TRAJECTORY_H
 

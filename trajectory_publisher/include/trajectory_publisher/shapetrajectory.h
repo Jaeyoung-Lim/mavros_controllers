@@ -36,7 +36,6 @@
  * @author Jaeyoung Lim <jalim@ethz.ch>
  */
 
-
 #ifndef TRAJECTORY_PUBLISHER_SHAPETRAJECTORY_H
 #define TRAJECTORY_PUBLISHER_SHAPETRAJECTORY_H
 
