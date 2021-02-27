@@ -145,7 +145,7 @@ class geometricCtrl {
   int posehistory_window_;
 
   void pubMotorCommands();
-  void pubRateCommands(const Eigen::Vector4d &cmd);
+  void pubRateCommands(const Eigen::Vector4d &cmd, const Eigen::Vector4d &target_attitude);
   void pubReferencePose(const Eigen::Vector3d &target_position, const Eigen::Vector4d &target_attitude);
   void pubPoseHistory();
   void pubSystemStatus();

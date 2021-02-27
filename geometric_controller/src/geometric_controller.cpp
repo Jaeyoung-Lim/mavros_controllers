@@ -233,7 +233,7 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent &event) {
     case MISSION_EXECUTION:
       if (!feedthrough_enable_) computeBodyRateCmd(cmdBodyRate_, targetPos_, targetVel_, targetAcc_);
       pubReferencePose(targetPos_, q_des);
-      pubRateCommands(cmdBodyRate_);
+      pubRateCommands(cmdBodyRate_, q_des);
       appendPoseHistory();
       pubPoseHistory();
       break;
@@ -295,7 +295,7 @@ void geometricCtrl::pubReferencePose(const Eigen::Vector3d &target_position, con
   referencePosePub_.publish(msg);
 }
 
-void geometricCtrl::pubRateCommands(const Eigen::Vector4d &cmd) {
+void geometricCtrl::pubRateCommands(const Eigen::Vector4d &cmd, const Eigen::Vector4d &target_attitude) {
   mavros_msgs::AttitudeTarget msg;
 
   msg.header.stamp = ros::Time::now();
@@ -304,6 +304,10 @@ void geometricCtrl::pubRateCommands(const Eigen::Vector4d &cmd) {
   msg.body_rate.y = cmd(1);
   msg.body_rate.z = cmd(2);
   msg.type_mask = 128;  // Ignore orientation messages
+  msg.orientation.w = target_attitude(0);
+  msg.orientation.x = target_attitude(1);
+  msg.orientation.y = target_attitude(2);
+  msg.orientation.z = target_attitude(3);
   msg.thrust = cmd(3);
 
   angularVelPub_.publish(msg);
