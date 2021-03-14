@@ -134,6 +134,7 @@ class geometricCtrl {
   double initTargetPos_x_, initTargetPos_y_, initTargetPos_z_;
   Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
   Eigen::Vector3d mavPos_, mavVel_, mavRate_;
+  Eigen::Vector3d last_ref_acc_{Eigen::Vector3d::Zero()};
   double mavYaw_;
   Eigen::Vector3d g_;
   Eigen::Vector4d mavAtt_, q_des;
@@ -166,10 +167,12 @@ class geometricCtrl {
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
   void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_pos,
                           const Eigen::Vector3d &target_vel, const Eigen::Vector3d &target_acc);
+  Eigen::Vector3d poscontroller(const Eigen::Vector3d &pos_error, const Eigen::Vector3d &vel_error);
   Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
                                 Eigen::Vector4d &curr_att);
   Eigen::Vector4d geometric_attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
                                           Eigen::Vector4d &curr_att);
+  Eigen::Vector4d jerkcontroller(const Eigen::Vector3d &ref_jerk, const Eigen::Vector3d &ref_acc, Eigen::Vector4d &ref_att, Eigen::Vector4d &curr_att);
 
   enum FlightState { WAITING_FOR_HOME_POSE, MISSION_EXECUTION, LANDING, LANDED } node_state;
 
