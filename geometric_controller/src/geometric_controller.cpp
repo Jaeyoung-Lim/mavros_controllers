@@ -154,7 +154,7 @@ void geometricCtrl::flattargetCallback(const controller_msgs::FlatTarget &msg) {
     targetSnap_ = Eigen::Vector3d::Zero();
 
   } else if (msg.type_mask == 2) {
-    targetAcc_ = Eigen::Vector3d::Zero();
+    targetAcc_ = toEigen(msg.acceleration);
     targetJerk_ = Eigen::Vector3d::Zero();
     targetSnap_ = Eigen::Vector3d::Zero();
 
