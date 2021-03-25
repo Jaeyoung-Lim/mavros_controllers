@@ -48,6 +48,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <mavconn/mavlink_dialect.h>
+#include <mavros_msgs/GlobalPositionTarget.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
@@ -72,6 +73,7 @@ class trajectoryPublisher {
   ros::Publisher referencePub_;
   ros::Publisher flatreferencePub_;
   ros::Publisher rawreferencePub_;
+  ros::Publisher global_rawreferencePub_;
   std::vector<ros::Publisher> primitivePub_;
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
@@ -110,6 +112,7 @@ class trajectoryPublisher {
   void pubrefState();
   void pubflatrefState();
   void pubrefSetpointRaw();
+  void pubrefSetpointRawGlobal();
   void initializePrimitives(int type);
   void updatePrimitives();
   void loopCallback(const ros::TimerEvent& event);
