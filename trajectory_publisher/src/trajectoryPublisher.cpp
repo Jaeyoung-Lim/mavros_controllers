@@ -46,6 +46,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   referencePub_ = nh_.advertise<geometry_msgs::TwistStamped>("reference/setpoint", 1);
   flatreferencePub_ = nh_.advertise<controller_msgs::FlatTarget>("reference/flatsetpoint", 1);
   rawreferencePub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 1);
+  global_rawreferencePub_ = nh_.advertise<mavros_msgs::GlobalPositionTarget>("mavros/setpoint_raw/global", 1);
   motionselectorSub_ =
       nh_.subscribe("trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,
                     ros::TransportHints().tcpNoDelay());
@@ -196,6 +197,25 @@ void trajectoryPublisher::pubrefSetpointRaw() {
   rawreferencePub_.publish(msg);
 }
 
+void trajectoryPublisher::pubrefSetpointRawGlobal() {
+  mavros_msgs::GlobalPositionTarget msg;
+
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "map";
+  msg.type_mask = 0;
+  msg.coordinate_frame = 5;
+  msg.latitude = 47.397742;
+  msg.longitude = 8.545594;
+  msg.altitude = 500.0;
+  msg.velocity.x = v_targ(0);
+  msg.velocity.y = v_targ(1);
+  msg.velocity.z = v_targ(2);
+  msg.acceleration_or_force.x = a_targ(0);
+  msg.acceleration_or_force.y = a_targ(1);
+  msg.acceleration_or_force.z = a_targ(2);
+  global_rawreferencePub_.publish(msg);
+}
+
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event) {
   // Slow Loop publishing trajectory information
   pubrefTrajectory(motion_selector_);
@@ -211,6 +231,7 @@ void trajectoryPublisher::refCallback(const ros::TimerEvent& event) {
       break;
     case REF_SETPOINTRAW:
       pubrefSetpointRaw();
+      // pubrefSetpointRawGlobal();
       break;
     default:
       pubflatrefState();
