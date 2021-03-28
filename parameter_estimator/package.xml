@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<package>
+  <name>parameter_estimator</name>
+  <version>0.0.0</version>
+  <description>Polynomial Trajectory Tracking controller using a geometric controller</description>
+
+  <maintainer email="jalim@student.ethz.ch">Jaeyoung Lim</maintainer>
+
+  <license>BSD</license>
+
+
+  <build_depend>dynamic_reconfigure</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>controller_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>mavros</build_depend>
+  <build_depend>mavros_extras</build_depend>
+  <build_depend>mavros_msgs</build_depend>
+  <build_depend>mavros_extras</build_depend>
+  <build_depend> eigen_catkin</build_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>controller_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>mavros</run_depend>
+  <run_depend>mavros_extras</run_depend>
+  <run_depend>mavros_msgs</run_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

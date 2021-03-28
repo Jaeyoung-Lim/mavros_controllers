@@ -1,0 +1,9 @@
+<launch>
+
+  <include file="$(find geometric_controller)/launch/sitl_trajectory_track_circle.launch">
+  </include>
+
+  <node pkg="parameter_estimator" type="parameter_estimator_node" name="parameter_estimator" output="screen">
+  </node>
+
+</launch>
