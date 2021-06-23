@@ -362,8 +362,8 @@ geometry_msgs::PoseStamped geometricCtrl::vector3d2PoseStampedMsg(Eigen::Vector3
   return encode_msg;
 }
 
-Eigen::Vector3d geometricCtrl::controlPosition(const Eigen::Vector3d &target_pos,
-                                               const Eigen::Vector3d &target_vel, const Eigen::Vector3d &target_acc) {
+Eigen::Vector3d geometricCtrl::controlPosition(const Eigen::Vector3d &target_pos, const Eigen::Vector3d &target_vel,
+                                               const Eigen::Vector3d &target_acc) {
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
   const Eigen::Vector3d a_ref = target_acc;
