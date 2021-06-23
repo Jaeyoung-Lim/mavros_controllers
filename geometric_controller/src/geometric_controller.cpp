@@ -230,13 +230,20 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent &event) {
       node_state = MISSION_EXECUTION;
       break;
 
-    case MISSION_EXECUTION:
-      if (!feedthrough_enable_) computeBodyRateCmd(cmdBodyRate_, targetPos_, targetVel_, targetAcc_);
+    case MISSION_EXECUTION: {
+      Eigen::Vector3d desired_acc;
+      if (feedthrough_enable_) {
+        desired_acc = targetAcc_;
+      } else {
+        desired_acc = controlPosition(targetPos_, targetVel_, targetAcc_);
+      }
+      computeBodyRateCmd(cmdBodyRate_, desired_acc);
       pubReferencePose(targetPos_, q_des);
       pubRateCommands(cmdBodyRate_, q_des);
       appendPoseHistory();
       pubPoseHistory();
       break;
+    }
 
     case LANDING: {
       geometry_msgs::PoseStamped landingmsg;
@@ -355,8 +362,8 @@ geometry_msgs::PoseStamped geometricCtrl::vector3d2PoseStampedMsg(Eigen::Vector3
   return encode_msg;
 }
 
-void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_pos,
-                                       const Eigen::Vector3d &target_vel, const Eigen::Vector3d &target_acc) {
+Eigen::Vector3d geometricCtrl::controlPosition(const Eigen::Vector3d &target_pos,
+                                               const Eigen::Vector3d &target_vel, const Eigen::Vector3d &target_acc) {
   /// Compute BodyRate commands using differential flatness
   /// Controller based on Faessler 2017
   const Eigen::Vector3d a_ref = target_acc;
@@ -379,6 +386,10 @@ void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eige
   // Reference acceleration
   const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - g_;
 
+  return a_des;
+}
+
+void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &a_des) {
   // Reference attitude
   q_des = acc2quaternion(a_des, mavYaw_);
 
