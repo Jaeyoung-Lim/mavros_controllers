@@ -111,6 +111,7 @@ class geometricCtrl {
   ros::ServiceServer land_service_;
   ros::Timer cmdloop_timer_, statusloop_timer_;
   ros::Time last_request_, reference_request_now_, reference_request_last_;
+    ros::Time refstart_time_;
 
   string mav_name_;
   bool fail_detec_, ctrl_enable_, feedthrough_enable_;
@@ -130,6 +131,7 @@ class geometricCtrl {
   mavros_msgs::CommandBool arm_cmd_;
   std::vector<geometry_msgs::PoseStamped> posehistory_vector_;
   MAV_STATE companion_state_ = MAV_STATE::MAV_STATE_ACTIVE;
+    trajectory_msgs::MultiDOFJointTrajectory refmultiDofMsg_;
 
   double initTargetPos_x_, initTargetPos_y_, initTargetPos_z_;
   Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
