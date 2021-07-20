@@ -60,6 +60,7 @@
 #include <mavros_msgs/State.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
+#include <std_msgs/Float64.h>
 #include <std_msgs/Float32.h>
 #include <Eigen/Dense>
 
