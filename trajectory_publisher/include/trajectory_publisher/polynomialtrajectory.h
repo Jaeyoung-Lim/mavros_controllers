@@ -59,6 +59,7 @@ class polynomialtrajectory : public trajectory {
   void setCoefficients(Eigen::VectorXd &x_coefficients, Eigen::VectorXd &y_coefficients,
                        Eigen::VectorXd &z_coefficients);
   Eigen::VectorXd getCoefficients(int dim);
+  float getYaw(double time);
   Eigen::Vector3d getPosition(double time);
   Eigen::Vector3d getVelocity(double time);
   Eigen::Vector3d getAcceleration(double time);

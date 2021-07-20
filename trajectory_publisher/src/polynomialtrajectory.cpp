@@ -128,6 +128,10 @@ Eigen::VectorXd polynomialtrajectory::getCoefficients(int dim) {
   }
 }
 
+float polynomialtrajectory::getYaw(double time) {
+  float yaw = 0.0;
+  return yaw;
+}
 Eigen::Vector3d polynomialtrajectory::getPosition(double time) {
   Eigen::Vector3d position;
   position << c_x_(0) + c_x_(1) * time + c_x_(2) * pow(time, 2) + c_x_(3) * pow(time, 3),

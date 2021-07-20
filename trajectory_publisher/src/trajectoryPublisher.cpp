@@ -111,8 +111,9 @@ void trajectoryPublisher::updateReference() {
   curr_time_ = ros::Time::now();
   trigger_time_ = (curr_time_ - start_time_).toSec();
 
-  p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
-  v_targ = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
+  p_targ   = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
+  v_targ   = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
+  yaw_targ = motionPrimitives_.at(motion_selector_)->getYaw(trigger_time_);
   if (pubreference_type_ != 0) a_targ = motionPrimitives_.at(motion_selector_)->getAcceleration(trigger_time_);
 }
 
@@ -177,6 +178,7 @@ void trajectoryPublisher::pubflatrefState() {
   msg.acceleration.x = a_targ(0);
   msg.acceleration.y = a_targ(1);
   msg.acceleration.z = a_targ(2);
+  msg.yaw.data = yaw_targ;
   flatreferencePub_.publish(msg);
 }
 
