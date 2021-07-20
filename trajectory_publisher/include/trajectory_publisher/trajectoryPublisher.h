@@ -53,6 +53,7 @@
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
 #include <std_srvs/SetBool.h>
 #include "controller_msgs/FlatTarget.h"
@@ -88,6 +89,7 @@ class trajectoryPublisher {
 
   int trajectory_type_;
   Eigen::Vector3d p_targ, v_targ, a_targ;
+  double yaw_targ;
   Eigen::Vector3d p_mav_, v_mav_;
   Eigen::Vector3d shape_origin_, shape_axis_;
   double shape_omega_ = 0;
