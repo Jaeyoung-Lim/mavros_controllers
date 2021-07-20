@@ -67,6 +67,25 @@ void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d ve
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc,
                                          Eigen::Vector3d jerk) {}
 
+float shapetrajectory::getYaw(double time) {
+
+  float yaw;
+
+  switch (type_) {
+   
+    case TRAJ_ZERO:
+      yaw = 0;
+      break;
+
+    case TRAJ_CIRCLE:
+      yaw = (traj_omega_ * time) - M_PI; // always pointing to the center of the circle
+      yaw = atan2f( sin(yaw),cos(yaw) ); // wrap angle around [-pi,pi]
+      break;
+  }
+
+  return yaw;
+}
+
 Eigen::Vector3d shapetrajectory::getPosition(double time) {
   Eigen::Vector3d position;
   double theta;
