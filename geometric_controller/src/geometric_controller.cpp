@@ -147,6 +147,7 @@ void geometricCtrl::flattargetCallback(const controller_msgs::FlatTarget &msg) {
 
   targetPos_ = toEigen(msg.position);
   targetVel_ = toEigen(msg.velocity);
+  mavYaw_ = double(msg.yaw.data);
 
   if (msg.type_mask == 1) {
     targetAcc_ = toEigen(msg.acceleration);
