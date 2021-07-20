@@ -5,3 +5,6 @@
 
 #Artifacts from vscode
 .vscode/*
+
+#Rviz config
+geometric_controller/launch/config_file.rviz
