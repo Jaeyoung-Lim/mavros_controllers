@@ -84,7 +84,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &n
   nh_private_.param<int>("ctrl_mode", ctrl_mode_, ERROR_QUATERNION);
   nh_private_.param<bool>("enable_sim", sim_enable_, true);
   nh_private_.param<bool>("velocity_yaw", velocity_yaw_, false);
-  nh_private_.param<double>("max_acc", max_fb_acc_, 9.0);
+  nh_private_.param<double>("max_acc", max_fb_acc_, 12.0);
   nh_private_.param<double>("yaw_heading", mavYaw_, 0.0);
   nh_private_.param<double>("drag_dx", dx_, 0.0);
   nh_private_.param<double>("drag_dy", dy_, 0.0);
