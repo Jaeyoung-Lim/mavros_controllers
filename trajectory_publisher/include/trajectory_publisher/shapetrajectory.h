@@ -41,14 +41,11 @@
 
 #include "trajectory_publisher/trajectory.h"
 
-#define TRAJ_ZERO 0
-#define TRAJ_CIRCLE 1
-#define TRAJ_LAMNISCATE 2
-#define TRAJ_STATIONARY 3
+enum class TrajectoryType {ZERO, CIRCLE, LAMNISCATE, STATIONARY, LISSAJOUS};
 
 class shapetrajectory : public trajectory {
  private:
-  int type_;
+  TrajectoryType type_;
   int N;
   double dt_;
   double T_;
@@ -58,8 +55,11 @@ class shapetrajectory : public trajectory {
   double traj_radius_, traj_omega_;
 
  public:
-  shapetrajectory(int type);
+  shapetrajectory(TrajectoryType type);
   virtual ~shapetrajectory();
+  double LissajousAxis(const double c, double omega, double time);
+  double LissajousAxisVelocity(const double c, double omega, double time);
+  double LissajousAxisAcceleration(const double c, double omega, double time);
   void initPrimitives(Eigen::Vector3d pos, Eigen::Vector3d axis, double omega);
   void generatePrimitives(Eigen::Vector3d pos);
   void generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel);

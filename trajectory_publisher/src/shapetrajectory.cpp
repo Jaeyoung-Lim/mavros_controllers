@@ -38,11 +38,11 @@
 
 #include "trajectory_publisher/shapetrajectory.h"
 
-shapetrajectory::shapetrajectory(int type) : trajectory(), N(0), dt_(0.1), T_(10.0), type_(type) {
+shapetrajectory::shapetrajectory(TrajectoryType type) : trajectory(), N(0), dt_(0.1), T_(10.0), type_(type) {
   traj_omega_ = 2.0;
   traj_axis_ << 0.0, 0.0, 1.0;
   traj_radial_ << 1.0, 0.0, 0.0;
-  traj_origin_ << 0.0, 0.0, 1.0;
+  traj_origin_ << 0.0, 0.0, 10.0;
 };
 
 shapetrajectory::~shapetrajectory(){
@@ -53,7 +53,7 @@ void shapetrajectory::initPrimitives(Eigen::Vector3d pos, Eigen::Vector3d axis, 
   // Generate primitives based on current state for smooth trajectory
   traj_origin_ = pos;
   traj_omega_ = omega;
-  T_ = 2 * 3.14 / traj_omega_;
+  T_ = 2 * M_PI / traj_omega_;
   traj_axis_ = axis;
   traj_radial_ << 2.0, 0.0, 0.0;
 }
@@ -67,33 +67,49 @@ void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d ve
 void shapetrajectory::generatePrimitives(Eigen::Vector3d pos, Eigen::Vector3d vel, Eigen::Vector3d acc,
                                          Eigen::Vector3d jerk) {}
 
+double shapetrajectory::LissajousAxis(const double c, double omega, double time) {
+  return std::sin(c * omega * time ) + 0.1 * std::sin(5 * c * omega * time);
+}
+
+double shapetrajectory::LissajousAxisVelocity(const double c, double omega, double time) {
+  return c * omega * std::cos(c * omega * time ) + 0.1 * 5 * c * omega * std::cos(5 * c * omega * time);
+}
+
+double shapetrajectory::LissajousAxisAcceleration(const double c, double omega, double time) {
+  return - c * omega * c * omega * std::sin(c * omega * time ) - 0.1 * 5 * c * omega * 5 * c * omega * std::sin(5 * c * omega * time);
+}
+
 Eigen::Vector3d shapetrajectory::getPosition(double time) {
   Eigen::Vector3d position;
   double theta;
 
   switch (type_) {
-    case TRAJ_ZERO:
-
+    case TrajectoryType::ZERO:
       position << 0.0, 0.0, 0.0;
       break;
 
-    case TRAJ_CIRCLE:
-
+    case TrajectoryType::CIRCLE:
       theta = traj_omega_ * time;
       position = std::cos(theta) * traj_radial_ + std::sin(theta) * traj_axis_.cross(traj_radial_) +
                  (1 - std::cos(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_ + traj_origin_;
       break;
 
-    case TRAJ_LAMNISCATE:  // Lemniscate of Genero
-
+    case TrajectoryType::LAMNISCATE:  // Lemniscate of Genero
       theta = traj_omega_ * time;
       position = std::cos(theta) * traj_radial_ + std::sin(theta) * std::cos(theta) * traj_axis_.cross(traj_radial_) +
                  (1 - std::cos(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_ + traj_origin_;
       break;
-    case TRAJ_STATIONARY:  // Lemniscate of Genero
 
+    case TrajectoryType::LISSAJOUS:
+      position(0) = LissajousAxis(8.0, traj_omega_, time) + traj_origin_(0);
+      position(1) = LissajousAxis(5.0, traj_omega_, time) + traj_origin_(1);
+      position(2) = LissajousAxis(3.0, traj_omega_, time) + traj_origin_(2);
+      break;
+
+    case TrajectoryType::STATIONARY:
       position = traj_origin_;
       break;
+    
   }
   return position;
 }
@@ -103,22 +119,26 @@ Eigen::Vector3d shapetrajectory::getVelocity(double time) {
   double theta;
 
   switch (type_) {
-    case TRAJ_CIRCLE:
-
+    case TrajectoryType::CIRCLE:
       velocity = traj_omega_ * traj_axis_.cross(getPosition(time));
       break;
-    case TRAJ_STATIONARY:
 
+    case TrajectoryType::STATIONARY:
       velocity << 0.0, 0.0, 0.0;
       break;
 
-    case TRAJ_LAMNISCATE:  // Lemniscate of Genero
-
+    case TrajectoryType::LAMNISCATE:  // Lemniscate of Genero
       theta = traj_omega_ * time;
       velocity = traj_omega_ *
                  (-std::sin(theta) * traj_radial_ +
                   (std::pow(std::cos(theta), 2) - std::pow(std::sin(theta), 2)) * traj_axis_.cross(traj_radial_) +
                   (std::sin(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_);
+      break;
+
+    case TrajectoryType::LISSAJOUS:
+      velocity(0) = LissajousAxisVelocity(8.0, traj_omega_, time);
+      velocity(1) = LissajousAxisVelocity(5.0, traj_omega_, time);
+      velocity(2) = LissajousAxisVelocity(3.0, traj_omega_, time);
       break;
 
     default:
@@ -132,14 +152,20 @@ Eigen::Vector3d shapetrajectory::getAcceleration(double time) {
   Eigen::Vector3d acceleration;
 
   switch (type_) {
-    case TRAJ_CIRCLE:
+    case TrajectoryType::CIRCLE:
 
       acceleration = traj_omega_ * traj_axis_.cross(getVelocity(time));
       break;
-    case TRAJ_STATIONARY:
-
+    case TrajectoryType::STATIONARY:
       acceleration << 0.0, 0.0, 0.0;
       break;
+    
+    case TrajectoryType::LISSAJOUS:
+      acceleration(0) = LissajousAxisAcceleration(8.0, traj_omega_, time);
+      acceleration(1) = LissajousAxisAcceleration(5.0, traj_omega_, time);
+      acceleration(2) = LissajousAxisAcceleration(3.0, traj_omega_, time);
+      break;
+
     default:
       acceleration << 0.0, 0.0, 0.0;
       break;
