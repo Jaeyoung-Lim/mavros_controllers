@@ -88,8 +88,8 @@ class trajectoryPublisher {
   nav_msgs::Path primTrajectory_;
 
   int trajectory_type_;
-  Eigen::Vector3d p_targ, v_targ, a_targ;
-  double yaw_targ;
+  Eigen::Vector3d p_targ_, v_targ_, a_targ_;
+  double yaw_targ_;
   Eigen::Vector3d p_mav_, v_mav_;
   Eigen::Vector3d shape_origin_, shape_axis_;
   double shape_omega_ = 0;
@@ -100,6 +100,7 @@ class trajectoryPublisher {
   double init_pos_x_, init_pos_y_, init_pos_z_;
   double max_jerk_;
   int pubreference_type_;
+  bool ignore_yaw_;
   int num_primitives_;
   int motion_selector_;
 
