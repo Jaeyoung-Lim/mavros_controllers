@@ -70,6 +70,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_private_.param<int>("trajectory_type", trajectory_type_, 0);
   nh_private_.param<int>("number_of_primitives", num_primitives_, 7);
   nh_private_.param<int>("reference_type", pubreference_type_, 2);
+  nh_private_.param<bool>("ignore_yaw", ignore_yaw_, false);
 
   inputs_.resize(num_primitives_);
 
@@ -98,8 +99,8 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
     primitivePub_.push_back(nh_.advertise<nav_msgs::Path>("trajectory_publisher/primitiveset", 1));
   }
 
-  p_targ << init_pos_x_, init_pos_y_, init_pos_z_;
-  v_targ << 0.0, 0.0, 0.0;
+  p_targ_ << init_pos_x_, init_pos_y_, init_pos_z_;
+  v_targ_ << 0.0, 0.0, 0.0;
   shape_origin_ << init_pos_x_, init_pos_y_, init_pos_z_;
   shape_axis_ << 0.0, 0.0, 1.0;
   motion_selector_ = 0;
@@ -111,10 +112,15 @@ void trajectoryPublisher::updateReference() {
   curr_time_ = ros::Time::now();
   trigger_time_ = (curr_time_ - start_time_).toSec();
 
-  p_targ   = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
-  v_targ   = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
-  yaw_targ = motionPrimitives_.at(motion_selector_)->getYaw(trigger_time_);
-  if (pubreference_type_ != 0) a_targ = motionPrimitives_.at(motion_selector_)->getAcceleration(trigger_time_);
+  p_targ_   = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
+  v_targ_   = motionPrimitives_.at(motion_selector_)->getVelocity(trigger_time_);
+  if(!ignore_yaw_) {
+    yaw_targ_ = motionPrimitives_.at(motion_selector_)->getYaw(trigger_time_);
+  }
+  else
+    yaw_targ_ = 0.0;
+  
+  if (pubreference_type_ != 0) a_targ_ = motionPrimitives_.at(motion_selector_)->getAcceleration(trigger_time_);
 }
 
 void trajectoryPublisher::initializePrimitives(int type) {
@@ -154,12 +160,12 @@ void trajectoryPublisher::pubrefState() {
 
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
-  msg.twist.angular.x = p_targ(0);
-  msg.twist.angular.y = p_targ(1);
-  msg.twist.angular.z = p_targ(2);
-  msg.twist.linear.x = v_targ(0);
-  msg.twist.linear.y = v_targ(1);
-  msg.twist.linear.z = v_targ(2);
+  msg.twist.angular.x = p_targ_(0);
+  msg.twist.angular.y = p_targ_(1);
+  msg.twist.angular.z = p_targ_(2);
+  msg.twist.linear.x = v_targ_(0);
+  msg.twist.linear.y = v_targ_(1);
+  msg.twist.linear.z = v_targ_(2);
   referencePub_.publish(msg);
 }
 
@@ -169,16 +175,25 @@ void trajectoryPublisher::pubflatrefState() {
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
   msg.type_mask = pubreference_type_;
-  msg.position.x = p_targ(0);
-  msg.position.y = p_targ(1);
-  msg.position.z = p_targ(2);
-  msg.velocity.x = v_targ(0);
-  msg.velocity.y = v_targ(1);
-  msg.velocity.z = v_targ(2);
-  msg.acceleration.x = a_targ(0);
-  msg.acceleration.y = a_targ(1);
-  msg.acceleration.z = a_targ(2);
-  msg.yaw.data = yaw_targ;
+  
+  if(ignore_yaw_) {
+    msg.type_mask |= 8;
+  }
+  else 
+  {
+    msg.yaw.data = yaw_targ_;
+  }
+    
+  msg.position.x = p_targ_(0);
+  msg.position.y = p_targ_(1);
+  msg.position.z = p_targ_(2);
+  msg.velocity.x = v_targ_(0);
+  msg.velocity.y = v_targ_(1);
+  msg.velocity.z = v_targ_(2);
+  msg.acceleration.x = a_targ_(0);
+  msg.acceleration.y = a_targ_(1);
+  msg.acceleration.z = a_targ_(2);
+  
   flatreferencePub_.publish(msg);
 }
 
@@ -187,15 +202,15 @@ void trajectoryPublisher::pubrefSetpointRaw() {
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
   msg.type_mask = 0;
-  msg.position.x = p_targ(0);
-  msg.position.y = p_targ(1);
-  msg.position.z = p_targ(2);
-  msg.velocity.x = v_targ(0);
-  msg.velocity.y = v_targ(1);
-  msg.velocity.z = v_targ(2);
-  msg.acceleration_or_force.x = a_targ(0);
-  msg.acceleration_or_force.y = a_targ(1);
-  msg.acceleration_or_force.z = a_targ(2);
+  msg.position.x = p_targ_(0);
+  msg.position.y = p_targ_(1);
+  msg.position.z = p_targ_(2);
+  msg.velocity.x = v_targ_(0);
+  msg.velocity.y = v_targ_(1);
+  msg.velocity.z = v_targ_(2);
+  msg.acceleration_or_force.x = a_targ_(0);
+  msg.acceleration_or_force.y = a_targ_(1);
+  msg.acceleration_or_force.z = a_targ_(2);
   rawreferencePub_.publish(msg);
 }
 
@@ -209,12 +224,12 @@ void trajectoryPublisher::pubrefSetpointRawGlobal() {
   msg.latitude = 47.397742;
   msg.longitude = 8.545594;
   msg.altitude = 500.0;
-  msg.velocity.x = v_targ(0);
-  msg.velocity.y = v_targ(1);
-  msg.velocity.z = v_targ(2);
-  msg.acceleration_or_force.x = a_targ(0);
-  msg.acceleration_or_force.y = a_targ(1);
-  msg.acceleration_or_force.z = a_targ(2);
+  msg.velocity.x = v_targ_(0);
+  msg.velocity.y = v_targ_(1);
+  msg.velocity.z = v_targ_(2);
+  msg.acceleration_or_force.x = a_targ_(0);
+  msg.acceleration_or_force.y = a_targ_(1);
+  msg.acceleration_or_force.z = a_targ_(2);
   global_rawreferencePub_.publish(msg);
 }
 
