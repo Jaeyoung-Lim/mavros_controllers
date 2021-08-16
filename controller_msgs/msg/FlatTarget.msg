@@ -7,6 +7,7 @@ uint8 type_mask
 uint8 IGNORE_SNAP = 1	# Position Velocity Acceleration Jerk Reference
 uint8 IGNORE_SNAP_JERK = 2	# Position Velocity Acceleration Reference
 uint8 IGNORE_SNAP_JERK_ACC = 4	# Position Reference
+uint8 IGNORE_YAW = 8 # Yaw Reference
 
 geometry_msgs/Vector3 position
 geometry_msgs/Vector3 velocity
