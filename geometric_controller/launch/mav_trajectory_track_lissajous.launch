@@ -1,0 +1,45 @@
+<launch>
+  <arg name="mav_name" default="iris"/>
+  <arg name="fcu_url" default="/dev/ttyUSB0:921600"/>
+  <arg name="gcs_url" default="" />
+  <arg name="tgt_system" default="1" />
+  <arg name="tgt_component" default="1" />
+  <arg name="command_input" default="2" />
+  <arg name="gazebo_simulation" default="false" />
+  <arg name="visualization" default="true"/>
+  <arg name="log_output" default="screen" />
+  <arg name="fcu_protocol" default="v2.0" />
+  <arg name="respawn_mavros" default="false" />
+  
+  <node pkg="geometric_controller" type="geometric_controller_node" name="geometric_controller" output="screen">
+  		<param name="mav_name" type="string" value="$(arg mav_name)" />
+          <remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
+          <param name="ctrl_mode" value="$(arg command_input)" />
+          <param name="enable_sim" value="$(arg gazebo_simulation)" />
+          <param name="max_acc" value="10.0" />
+          <param name="Kpos_x" value="8.0" />
+          <param name="Kpos_y" value="8.0" />
+          <param name="Kpos_z" value="10.0" />
+  </node>
+
+  <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
+        <param name="trajectory_type" value="4" />
+        <param name="shape_omega" value="0.15" />
+        <param name="initpos_z" value="3.0" />
+        <param name="reference_type" value="2" />
+  </node>
+
+  <include file="$(find mavros)/launch/node.launch">
+      <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
+      <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
+
+      <arg name="fcu_url" value="$(arg fcu_url)" />
+      <arg name="gcs_url" value="$(arg gcs_url)" />
+      <arg name="tgt_system" value="$(arg tgt_system)" />
+      <arg name="tgt_component" value="$(arg tgt_component)" />
+      <arg name="log_output" value="$(arg log_output)" />
+      <arg name="fcu_protocol" value="$(arg fcu_protocol)" />
+      <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
+  </include>
+
+</launch>
