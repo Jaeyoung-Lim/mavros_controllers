@@ -1,0 +1,11 @@
+[Unit]
+Description=Launch offboard mavros controller as a service
+After=network.target systemd-udevd.service
+
+[Service]
+EnvironmentFile=/home/px4vision/catkin_ws/src/mavros_controllers/systemd/environment.conf
+ExecStart=/bin/bash /home/px4vision/catkin_ws/src/mavros_controllers/Tools/run_controller.sh
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
