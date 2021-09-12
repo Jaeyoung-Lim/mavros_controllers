@@ -161,8 +161,8 @@ Eigen::Vector3d shapetrajectory::getAcceleration(double time) {
       break;
     
     case TrajectoryType::LISSAJOUS:
-      acceleration(0) = LissajousAxisAcceleration(8.0, traj_omega_, time);
-      acceleration(1) = LissajousAxisAcceleration(5.0, traj_omega_, time);
+      acceleration(0) = LissajousAxisAcceleration(3.0, traj_omega_, time);
+      acceleration(1) = LissajousAxisAcceleration(3.0, traj_omega_, time);
       acceleration(2) = LissajousAxisAcceleration(3.0, traj_omega_, time);
       break;
 

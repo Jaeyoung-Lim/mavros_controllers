@@ -1,5 +1,5 @@
 <launch>
-  <arg name="mav_name" default="iris"/>
+  <arg name="mav_name" default="px4vision"/>
   <arg name="fcu_url" default="udp://:14540@127.0.0.1:14557"/>
   <arg name="gcs_url" default="" />
   <arg name="tgt_system" default="1" />
@@ -16,8 +16,7 @@
           <remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
           <param name="ctrl_mode" value="$(arg command_input)" />
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
-          <param name="enable_gazebo_state" value="true"/>
-          <param name="attctrl_constant" value="0.09" />
+          <param name="attctrl_constant" value="0.2" />
           <param name="max_acc" value="12.0" />
           <param name="Kp_x" value="5.0" />
           <param name="Kp_y" value="5.0" />
@@ -29,8 +28,8 @@
 
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
         <param name="trajectory_type" value="4" />
-        <param name="shape_omega" value="0.15" />
-        <param name="initpos_z" value="3.0" />
+        <param name="shape_omega" value="0.1" />
+        <param name="initpos_z" value="5.0" />
         <param name="reference_type" value="2" />
   </node>
 
