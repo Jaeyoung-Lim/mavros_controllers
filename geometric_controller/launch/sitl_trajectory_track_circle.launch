@@ -17,18 +17,19 @@
           <param name="ctrl_mode" value="$(arg command_input)" />
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
           <param name="attctrl_constant" value="0.2" />
+          <param name="velocity_yaw" value="false" />
           <param name="max_acc" value="12.0" />
-          <param name="Kp_x" value="5.0" />
-          <param name="Kp_y" value="5.0" />
+          <param name="Kp_x" value="6.0" />
+          <param name="Kp_y" value="6.0" />
           <param name="Kp_z" value="10.0" />
-          <param name="Kv_x" value="3.0" />
-          <param name="Kv_y" value="3.0" />
-          <param name="Kv_z" value="3.0" />
+          <param name="Kv_x" value="4.0" />
+          <param name="Kv_y" value="4.0" />
+          <param name="Kv_z" value="4.0" />
   </node>
 
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
-        <param name="trajectory_type" value="4" />
-        <param name="shape_omega" value="0.1" />
+        <param name="trajectory_type" value="2" />
+        <param name="shape_omega" value="0.8" />
         <param name="initpos_z" value="5.0" />
         <param name="reference_type" value="2" />
   </node>
