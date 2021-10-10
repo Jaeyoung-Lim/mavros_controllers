@@ -496,7 +496,7 @@ Eigen::Vector4d geometricCtrl::geometric_attcontroller(const Eigen::Vector4d &re
   // Geometric attitude controller
   // Attitude error is defined as in Lee, Taeyoung, Melvin Leok, and N. Harris McClamroch. "Geometric tracking control
   // of a quadrotor UAV on SE (3)." 49th IEEE conference on decision and control (CDC). IEEE, 2010.
-  // The original paper inputs moment commands, but for offboard control angular rate commands are sent
+  // The original paper inputs moment commands, but for offboard control, angular rate commands are sent
 
   Eigen::Vector4d ratecmd;
   Eigen::Matrix3d rotmat;    // Rotation matrix of current attitude
