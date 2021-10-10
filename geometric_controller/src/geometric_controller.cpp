@@ -267,7 +267,7 @@ void geometricCtrl::mavstateCallback(const mavros_msgs::State::ConstPtr &msg) { 
 void geometricCtrl::statusloopCallback(const ros::TimerEvent &event) {
   if (sim_enable_) {
     // Enable OFFBoard mode and arm automatically
-    // This is only run if the vehicle is simulated
+    // This will only run if the vehicle is simulated
     arm_cmd_.request.value = true;
     offb_set_mode_.request.custom_mode = "OFFBOARD";
     if (current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))) {
@@ -499,7 +499,7 @@ Eigen::Vector4d geometricCtrl::geometric_attcontroller(const Eigen::Vector4d &re
   // The original paper inputs moment commands, but for offboard control angular rate commands are sent
 
   Eigen::Vector4d ratecmd;
-  Eigen::Matrix3d rotmat;    // Rotation matrix of current atttitude
+  Eigen::Matrix3d rotmat;    // Rotation matrix of current attitude
   Eigen::Matrix3d rotmat_d;  // Rotation matrix of desired attitude
   Eigen::Vector3d error_att;
 
