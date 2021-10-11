@@ -506,7 +506,7 @@ Eigen::Vector4d geometricCtrl::geometric_attcontroller(const Eigen::Vector4d &re
   rotmat = quat2RotMatrix(curr_att);
   rotmat_d = quat2RotMatrix(ref_att);
 
-  error_att = 0.5 * matrix_hat_inv(rotmat_d.transpose() * rotmat - rotmat.transpose() * rotmat * rotmat_d);
+  error_att = 0.5 * matrix_hat_inv(rotmat_d.transpose() * rotmat - rotmat.transpose() * rotmat_d);
   ratecmd.head(3) = (2.0 / attctrl_tau_) * error_att;
   rotmat = quat2RotMatrix(mavAtt_);
   const Eigen::Vector3d zb = rotmat.col(2);
