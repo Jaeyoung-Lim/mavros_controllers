@@ -268,10 +268,11 @@ void geometricCtrl::statusloopCallback(const ros::TimerEvent &event) {
   if (sim_enable_) {
     // Enable OFFBoard mode and arm automatically
     // This will only run if the vehicle is simulated
+    mavros_msgs::SetMode offb_set_mode;
     arm_cmd_.request.value = true;
-    offb_set_mode_.request.custom_mode = "OFFBOARD";
+    offb_set_mode.request.custom_mode = "OFFBOARD";
     if (current_state_.mode != "OFFBOARD" && (ros::Time::now() - last_request_ > ros::Duration(5.0))) {
-      if (set_mode_client_.call(offb_set_mode_) && offb_set_mode_.response.mode_sent) {
+      if (set_mode_client_.call(offb_set_mode) && offb_set_mode.response.mode_sent) {
         ROS_INFO("Offboard enabled");
       }
       last_request_ = ros::Time::now();
