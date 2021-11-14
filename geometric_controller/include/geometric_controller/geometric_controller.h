@@ -126,7 +126,6 @@ class geometricCtrl {
   double dx_, dy_, dz_;
 
   mavros_msgs::State current_state_;
-  mavros_msgs::SetMode offb_set_mode_;
   mavros_msgs::CommandBool arm_cmd_;
   std::vector<geometry_msgs::PoseStamped> posehistory_vector_;
   MAV_STATE companion_state_ = MAV_STATE::MAV_STATE_ACTIVE;
