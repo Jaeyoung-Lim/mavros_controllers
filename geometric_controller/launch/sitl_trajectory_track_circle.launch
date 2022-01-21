@@ -18,9 +18,16 @@
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
           <param name="enable_gazebo_state" value="true"/>
           <param name="max_acc" value="10.0" />
-          <param name="Kp_x" value="8.0" />
-          <param name="Kp_y" value="8.0" />
-          <param name="Kp_z" value="10.0" />
+          <!--Params specific for Iris copter-->
+          <param name="attctrl_constant" value="0.3"/>
+          <param name="normalizedthrust_constant" value="0.06"/>
+          <param name="normalizedthrust_offset" value="0.1"/>
+          <param name="Kp_x" value="10.0" />
+          <param name="Kp_y" value="10.0" />
+          <param name="Kp_z" value="20.0" />
+          <param name="Kv_x" value="5.0"/>
+          <param name="Kv_y" value="5.0"/>
+          <param name="Kv_z" value="10.0"/>
   </node>
 
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
