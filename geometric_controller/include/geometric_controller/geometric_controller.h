@@ -78,6 +78,8 @@
 using namespace std;
 using namespace Eigen;
 
+
+
 enum class MAV_STATE {
   MAV_STATE_UNINIT,
   MAV_STATE_BOOT,
@@ -113,7 +115,7 @@ class geometricCtrl {
   ros::Time last_request_, reference_request_now_, reference_request_last_;
 
   string mav_name_;
-  bool fail_detec_, ctrl_enable_, feedthrough_enable_;
+  bool fail_detec_, ctrl_enable_, feedthrough_enable_, use_lqr_;
   int ctrl_mode_;
   bool landing_commanded_;
   bool sim_enable_;
@@ -166,6 +168,9 @@ class geometricCtrl {
   bool landCallback(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
   geometry_msgs::PoseStamped vector3d2PoseStampedMsg(Eigen::Vector3d &position, Eigen::Vector4d &orientation);
   void computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_acc);
+  void computeBodyRateCmdLQR(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_pos, const Eigen::Vector3d &target_vel,
+                                  const Eigen::Vector3d &target_acc);
+
   Eigen::Vector3d controlPosition(const Eigen::Vector3d &target_pos, const Eigen::Vector3d &target_vel,
                                   const Eigen::Vector3d &target_acc);
   Eigen::Vector3d poscontroller(const Eigen::Vector3d &pos_error, const Eigen::Vector3d &vel_error);

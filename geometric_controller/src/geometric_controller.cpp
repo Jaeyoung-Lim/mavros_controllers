@@ -50,6 +50,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &n
       ctrl_enable_(true),
       landing_commanded_(false),
       feedthrough_enable_(false),
+      use_lqr_(false),
       node_state(WAITING_FOR_HOME_POSE) {
   referenceSub_ =
       nh_.subscribe("reference/setpoint", 1, &geometricCtrl::targetCallback, this, ros::TransportHints().tcpNoDelay());
@@ -232,16 +233,26 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent &event) {
 
     case MISSION_EXECUTION: {
       Eigen::Vector3d desired_acc;
-      if (feedthrough_enable_) {
-        desired_acc = targetAcc_;
-      } else {
-        desired_acc = controlPosition(targetPos_, targetVel_, targetAcc_);
+      if (use_lqr_) {
+        computeBodyRateCmdLQR(cmdBodyRate_,targetPos_, targetVel_, targetAcc_);
+        pubReferencePose(targetPos_, q_des);
+        pubRateCommands(cmdBodyRate_, q_des);
+        appendPoseHistory();
+        pubPoseHistory();
       }
-      computeBodyRateCmd(cmdBodyRate_, desired_acc);
-      pubReferencePose(targetPos_, q_des);
-      pubRateCommands(cmdBodyRate_, q_des);
-      appendPoseHistory();
-      pubPoseHistory();
+      else {
+        if (feedthrough_enable_) {
+          desired_acc = targetAcc_;
+        } else {
+          desired_acc = controlPosition(targetPos_, targetVel_, targetAcc_);
+        }
+        computeBodyRateCmd(cmdBodyRate_, desired_acc);
+        pubReferencePose(targetPos_, q_des);
+        pubRateCommands(cmdBodyRate_, q_des);
+        appendPoseHistory();
+        pubPoseHistory();  
+      }
+
       break;
     }
 
@@ -387,6 +398,56 @@ Eigen::Vector3d geometricCtrl::controlPosition(const Eigen::Vector3d &target_pos
   const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - g_;
 
   return a_des;
+}
+
+void geometricCtrl::computeBodyRateCmdLQR(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &target_pos, const Eigen::Vector3d &target_vel,
+                                  const Eigen::Vector3d &target_acc) {
+
+  const uint dim_x = 10;
+  const uint dim_u = 4;
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(dim_x, dim_x);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(dim_x, dim_u);
+  Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(dim_x, dim_x);
+  Eigen::MatrixXd R = Eigen::MatrixXd::Zero(dim_u, dim_u);
+  Eigen::MatrixXd P = Eigen::MatrixXd::Zero(dim_x, dim_x);
+  Eigen::MatrixXd K = Eigen::MatrixXd::Zero(dim_u, dim_x);
+
+  // Reference attitude
+  q_des = acc2quaternion(target_acc, mavYaw_); // Linearizing always about hover, what acceleration? linearization in inertial!!!???
+
+  const Eigen::Vector4d inverse(1.0, -1.0, -1.0, -1.0);
+  const Eigen::Vector4d q_inv = inverse.asDiagonal() * mavAtt_;
+  const Eigen::Vector4d q_error = quatMultiplication(q_inv, q_des);
+
+  const Eigen::Vector3d pos_error = mavPos_ - target_pos; // think about a better error metric
+  const Eigen::Vector3d vel_error = mavVel_ - target_vel;
+
+  state_vector_t state_error;
+  state_error << pos_error(0), pos_error(1), pos_error(2), vel_error(0), vel_error(1), vel_error(2), q_error(0),q_error(1),q_error(2),q_error(3);
+
+  state_vector_t xref; 
+  xref << target_pos(0), target_pos(1), target_pos(2), target_vel(0), target_vel(1), target_vel(2), q_des(0), q_des(1), q_des(2), q_des(3);
+  
+  control_vector_t u; // ????
+  A = A_quadrotor(xref,bodyrate_cmd);
+  B = B_quadrotor(xref,bodyrate_cmd);
+  
+  // Q(0, 0) = 1.0; Q(1, 1) = 1.0; Q(2, 2) = 2.0;
+  // Q(3, 3) = 1.0; Q(4, 4) = 1.0; Q(5, 5) = 2.0;
+  // Q(6, 6) = 1.0; Q(7, 7) = 1.0; Q(8, 8) = 2.0;
+  // Q(9, 9) = 2.0;
+  
+  // R(0,0) = 1.0; R(1,1) = 1.0; R(2,2) = 1.0; R(3,3) = 1.0;
+  
+  if(solveRiccatiIterationC(A, B, Q, R, P, 0.01))
+  {
+    K = R.inverse() * B.transpose() * P;
+    u = -K*state_error;
+    //bodyrate_cmd = bodyrate_cmd + u;
+  }
+  // Calculate BodyRate What about thrust?, matmul, u0?
+  // improve private names and private variables
+
 }
 
 void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eigen::Vector3d &a_des) {

@@ -46,6 +46,17 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <Eigen/Dense>
 
+const size_t nStates = 10;
+const size_t nControls = 4;
+
+typedef Eigen::Matrix<double, nStates, 1> state_vector_t;
+typedef Eigen::Matrix<double, nControls, 1> control_vector_t;
+
+typedef Eigen::Matrix<double, nStates, nStates> state_matrix_t;
+typedef Eigen::Matrix<double, nControls, nControls> control_matrix_t;
+typedef Eigen::Matrix<double, nStates, nControls> control_gain_matrix_t;
+
+
 static Eigen::Matrix3d matrix_hat(const Eigen::Vector3d &v) {
   Eigen::Matrix3d m;
   // Sanity checks on M
@@ -120,5 +131,172 @@ Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R) {
   }
   return quat;
 }
+
+state_matrix_t A_quadrotor(const state_vector_t& x, const control_vector_t& u);
+control_gain_matrix_t B_quadrotor(const state_vector_t& x, const control_vector_t& u);
+
+state_matrix_t A_quadrotor(const state_vector_t& x, const control_vector_t& u)
+{
+    double wx = u(0);
+    double wy = u(1);
+    double wz = u(2);
+    double norm_thrust  = u(3);
+    Eigen::Quaternion<double> q(x(3),x(4),x(5),x(6));
+    Eigen::Matrix<double,4,4> q_partial_correction;
+    Eigen::Matrix<double,4,4> dqdot_dq;
+    Eigen::Matrix<double,3,4> dvdot_dq;
+    Eigen::Matrix<double,4,1> q_vec;
+
+    q_vec(0) = q.w();
+    q_vec(1) = q.x();
+    q_vec(2) = q.y();
+    q_vec(3) = q.z();
+
+    state_matrix_t A;
+    A.setZero();
+
+    //Position
+    A(0,7) = 1;
+    A(1,8)= 1;
+    A(2,9)= 1;
+    Eigen::Matrix<double,4,4> Identity;
+
+    //Orientation
+    q_partial_correction = pow(q.norm(),-1.0)*(Identity.Identity() - pow(q.norm(),-2.0)*(q_vec * q_vec.transpose()));
+
+    dqdot_dq << 0, -wx, -wy, -wz,
+                wx, 0, wz, -wy,
+                wy, -wz, 0, wx,
+                wz, wy, -wx, 0;
+    dqdot_dq = 0.5*dqdot_dq*q_partial_correction;
+
+    A(3,3) = dqdot_dq(0,0);
+    A(3,4) = dqdot_dq(0,1);
+    A(3,5) = dqdot_dq(0,2);
+    A(3,6) = dqdot_dq(0,3);
+
+    A(4,3) = dqdot_dq(1,0);
+    A(4,4) = dqdot_dq(1,1);
+    A(4,5) = dqdot_dq(1,2);
+    A(4,6) = dqdot_dq(1,3);
+
+    A(5,3) = dqdot_dq(2,0);
+    A(5,4) = dqdot_dq(2,1);
+    A(5,5) = dqdot_dq(2,2);
+    A(5,6) = dqdot_dq(2,3);
+
+    A(6,3) = dqdot_dq(3,0);
+    A(6,4) = dqdot_dq(3,1);
+    A(6,5) = dqdot_dq(3,2);
+    A(6,6) = dqdot_dq(3,3);
+
+
+    //Velocity
+    dvdot_dq << q.y(),  q.z(),  q.w(), q.x(),
+              -q.x(), -q.w(),  q.z(), q.y(),
+               q.w(), -q.x(), -q.y(), q.z();
+
+    dvdot_dq = 2*norm_thrust*dvdot_dq*q_partial_correction;
+
+    A(7,3) = dvdot_dq(0,0);
+    A(7,4) = dvdot_dq(0,1);
+    A(7,5) = dvdot_dq(0,2);
+    A(7,6) = dvdot_dq(0,3);
+
+    A(8,3) = dvdot_dq(1,0);
+    A(8,4) = dvdot_dq(1,1);
+    A(8,5) = dvdot_dq(1,2);
+    A(8,6) = dvdot_dq(1,3);
+
+    A(9,3) = dvdot_dq(2,0);
+    A(9,4) = dvdot_dq(2,1);
+    A(9,5) = dvdot_dq(2,2);
+    A(9,6) = dvdot_dq(2,3);
+
+    return A;
+}
+
+control_gain_matrix_t B_quadrotor(const state_vector_t& x, const control_vector_t& u)
+{
+   double wx = u(0);
+   double wy = u(1);
+   double wz = u(2);
+   double norm_thrust  = u(3);
+   Eigen::Quaternion<double> q(x(3),x(4),x(5),x(6));
+   Eigen::Matrix<double,3,1> dvdot_dc;
+   Eigen::Matrix<double,4,3> dqdot_dw;
+
+   control_gain_matrix_t B;
+   B.setZero();
+
+   dvdot_dc << 2*(q.w()*q.y() + q.x()*q.z()),
+               2*(q.y()*q.z() - q.w()*q.x()),
+               pow(q.w(),2) - pow(q.x(),2) - pow(q.y(),2) + pow(q.z(),2);
+
+   B(7,3) = dvdot_dc(0);
+   B(8,3) = dvdot_dc(1);
+   B(9,3) = dvdot_dc(2);
+
+   dqdot_dw << -q.x(), -q.y(), -q.z(),
+                q.w(), -q.z(),  q.y(),
+                q.z(),  q.w(), -q.x(),
+               -q.y(),  q.x(),  q.w();
+
+   dqdot_dw = 0.5*dqdot_dw;
+
+   B(3,0) = dqdot_dw(0,0);
+   B(3,1) = dqdot_dw(0,1);
+   B(3,2) = dqdot_dw(0,2);
+
+   B(4,0) = dqdot_dw(1,0);
+   B(4,1) = dqdot_dw(1,1);
+   B(4,2) = dqdot_dw(1,2);
+
+   B(5,0) = dqdot_dw(2,0);
+   B(5,1) = dqdot_dw(2,1);
+   B(5,2) = dqdot_dw(2,2);
+
+   B(6,0) = dqdot_dw(3,0);
+   B(6,1) = dqdot_dw(3,1);
+   B(6,2) = dqdot_dw(3,2);
+
+   return B;
+}
+
+/* Itereation method for discrete model */
+bool solveRiccatiIterationC(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B,
+                            const Eigen::MatrixXd &Q, const Eigen::MatrixXd &R,
+                            Eigen::MatrixXd &P, const double dt = 0.001,
+                            const double &tolerance = 1.E-5,
+                            const uint iter_max = 100000);
+
+bool solveRiccatiIterationC(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B,
+                            const Eigen::MatrixXd &Q, const Eigen::MatrixXd &R,
+                            Eigen::MatrixXd &P, const double dt,
+                            const double &tolerance,
+                            const uint iter_max) {
+  P = Q; // initialize
+
+  Eigen::MatrixXd P_next;
+
+  Eigen::MatrixXd AT = A.transpose();
+  Eigen::MatrixXd BT = B.transpose();
+  Eigen::MatrixXd Rinv = R.inverse();
+
+  double diff;
+  for (uint i = 0; i < iter_max; ++i) {
+    P_next = P + (P * A + AT * P - P * B * Rinv * BT * P + Q) * dt;
+    diff = fabs((P_next - P).maxCoeff());
+    P = P_next;
+    if (diff < tolerance) {
+      std::cout << "iteration mumber = " << i << std::endl;
+      return true;
+    }
+  
+  }
+  
+  return false; // over iteration limit
+
+  }
 
 #endif

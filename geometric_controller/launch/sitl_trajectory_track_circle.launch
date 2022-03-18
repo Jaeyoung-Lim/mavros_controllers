@@ -17,7 +17,7 @@
           <param name="ctrl_mode" value="$(arg command_input)" />
           <param name="enable_sim" value="$(arg gazebo_simulation)" />
           <param name="enable_gazebo_state" value="true"/>
-          <param name="max_acc" value="10.0" />
+          <param name="max_acc" value="20.0" />
           <!--Params specific for Iris copter-->
           <param name="attctrl_constant" value="0.3"/>
           <param name="normalizedthrust_constant" value="0.06"/>
