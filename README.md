@@ -54,6 +54,7 @@ mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws
 catkin init
 catkin config --merge-devel
+cd ~/catkin_ws/src
 wstool init
 ```
 
@@ -105,11 +106,21 @@ source ~/catkin_ws/devel/setup.bash
 ```
 
 ## Running the code
+Remember to source the workspace `setup.bash` before sourcing the PX4 environment.
+```bash
+cd <Firmware_directory>
+source ~/catkin_ws/devel/setup.bash    # (necessary)
+source Tools/setup_gazebo.bash $(pwd) $(pwd)/build/px4_sitl_default
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)/Tools/sitl_gazebo
+```
 The following launch file enables the geometric controller to follow a circular trajectory
 
 ``` bash
 roslaunch geometric_controller sitl_trajectory_track_circle.launch
 ```
+
+If the UAV does not takeoff, please open QGroundControl and enable virtual joystick as mentioned [here](https://docs.qgroundcontrol.com/master/en/SettingsView/VirtualJoystick.html)
 
 ## Nodes
 `mavros_controllers` include the following packages.
