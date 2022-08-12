@@ -39,18 +39,15 @@
  */
 
 #include "geometric_controller/geometric_controller.h"
+#include "geometric_controller/jerk_tracking_control.h"
+#include "geometric_controller/nonlinear_attitude_control.h"
+#include "geometric_controller/nonlinear_geometric_control.h"
 
 using namespace Eigen;
 using namespace std;
 // Constructor
 geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private)
-    : nh_(nh),
-      nh_private_(nh_private),
-      fail_detec_(false),
-      ctrl_enable_(true),
-      landing_commanded_(false),
-      feedthrough_enable_(false),
-      node_state(WAITING_FOR_HOME_POSE) {
+    : nh_(nh), nh_private_(nh_private), node_state(WAITING_FOR_HOME_POSE) {
   referenceSub_ =
       nh_.subscribe("reference/setpoint", 1, &geometricCtrl::targetCallback, this, ros::TransportHints().tcpNoDelay());
   flatreferenceSub_ = nh_.subscribe("reference/flatsetpoint", 1, &geometricCtrl::flattargetCallback, this,
@@ -86,10 +83,15 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &n
   nh_private_.param<bool>("velocity_yaw", velocity_yaw_, false);
   nh_private_.param<double>("max_acc", max_fb_acc_, 9.0);
   nh_private_.param<double>("yaw_heading", mavYaw_, 0.0);
-  nh_private_.param<double>("drag_dx", dx_, 0.0);
-  nh_private_.param<double>("drag_dy", dy_, 0.0);
-  nh_private_.param<double>("drag_dz", dz_, 0.0);
-  nh_private_.param<double>("attctrl_constant", attctrl_tau_, 0.1);
+
+  double dx, dy, dz;
+  nh_private_.param<double>("drag_dx", dx, 0.0);
+  nh_private_.param<double>("drag_dy", dy, 0.0);
+  nh_private_.param<double>("drag_dz", dz, 0.0);
+  D_ << dx, dy, dz;
+
+  double attctrl_tau;
+  nh_private_.param<double>("attctrl_constant", attctrl_tau, 0.1);
   nh_private_.param<double>("normalizedthrust_constant", norm_thrust_const_, 0.05);  // 1 / max acceleration
   nh_private_.param<double>("normalizedthrust_offset", norm_thrust_offset_, 0.1);    // 1 / max acceleration
   nh_private_.param<double>("Kp_x", Kpos_x_, 8.0);
@@ -107,13 +109,19 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &n
   targetVel_ << 0.0, 0.0, 0.0;
   mavPos_ << 0.0, 0.0, 0.0;
   mavVel_ << 0.0, 0.0, 0.0;
-  g_ << 0.0, 0.0, -9.8;
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
   Kvel_ << -Kvel_x_, -Kvel_y_, -Kvel_z_;
 
-  D_ << dx_, dy_, dz_;
-
-  tau << tau_x, tau_y, tau_z;
+  bool jerk_enabled = false;
+  if (!jerk_enabled) {
+    if (ctrl_mode_ == ERROR_GEOMETRIC) {
+      controller_ = std::make_shared<NonlinearGeometricControl>(attctrl_tau);
+    } else {
+      controller_ = std::make_shared<NonlinearAttitudeControl>(attctrl_tau);
+    }
+  } else {
+    controller_ = std::make_shared<JerkTrackingControl>();
+  }
 }
 geometricCtrl::~geometricCtrl() {
   // Destructor
@@ -372,7 +380,7 @@ Eigen::Vector3d geometricCtrl::controlPosition(const Eigen::Vector3d &target_pos
     mavYaw_ = getVelocityYaw(mavVel_);
   }
 
-  const Eigen::Vector4d q_ref = acc2quaternion(a_ref - g_, mavYaw_);
+  const Eigen::Vector4d q_ref = acc2quaternion(a_ref - gravity_, mavYaw_);
   const Eigen::Matrix3d R_ref = quat2RotMatrix(q_ref);
 
   const Eigen::Vector3d pos_error = mavPos_ - target_pos;
@@ -385,7 +393,7 @@ Eigen::Vector3d geometricCtrl::controlPosition(const Eigen::Vector3d &target_pos
   const Eigen::Vector3d a_rd = R_ref * D_.asDiagonal() * R_ref.transpose() * target_vel;  // Rotor drag
 
   // Reference acceleration
-  const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - g_;
+  const Eigen::Vector3d a_des = a_fb + a_ref - a_rd - gravity_;
 
   return a_des;
 }
@@ -394,18 +402,12 @@ void geometricCtrl::computeBodyRateCmd(Eigen::Vector4d &bodyrate_cmd, const Eige
   // Reference attitude
   q_des = acc2quaternion(a_des, mavYaw_);
 
-  // Choose which kind of attitude controller you are running
-  bool jerk_enabled = false;
-  if (!jerk_enabled) {
-    if (ctrl_mode_ == ERROR_GEOMETRIC) {
-      bodyrate_cmd = geometric_attcontroller(q_des, a_des, mavAtt_);  // Calculate BodyRate
-
-    } else {
-      bodyrate_cmd = attcontroller(q_des, a_des, mavAtt_);  // Calculate BodyRate
-    }
-  } else {
-    bodyrate_cmd = jerkcontroller(targetJerk_, a_des, q_des, mavAtt_);
-  }
+  controller_->Update(mavAtt_, q_des, a_des, targetJerk_);  // Calculate BodyRate
+  bodyrate_cmd.head(3) = controller_->getDesiredRate();
+  double thrust_command = controller_->getDesiredThrust().z();
+  bodyrate_cmd(3) =
+      std::max(0.0, std::min(1.0, norm_thrust_const_ * thrust_command +
+                                      norm_thrust_offset_));  // Calculate thrustcontroller_->getDesiredThrust()(3);
 }
 
 Eigen::Vector3d geometricCtrl::poscontroller(const Eigen::Vector3d &pos_error, const Eigen::Vector3d &vel_error) {
@@ -432,89 +434,6 @@ Eigen::Vector4d geometricCtrl::acc2quaternion(const Eigen::Vector3d &vector_acc,
   rotmat << xb_des(0), yb_des(0), zb_des(0), xb_des(1), yb_des(1), zb_des(1), xb_des(2), yb_des(2), zb_des(2);
   quat = rot2Quaternion(rotmat);
   return quat;
-}
-
-Eigen::Vector4d geometricCtrl::attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
-                                             Eigen::Vector4d &curr_att) {
-  // Geometric attitude controller
-  // Attitude error is defined as in Brescianini, Dario, Markus Hehn, and Raffaello D'Andrea. Nonlinear quadrocopter
-  // attitude control: Technical report. ETH Zurich, 2013.
-
-  Eigen::Vector4d ratecmd;
-
-  const Eigen::Vector4d inverse(1.0, -1.0, -1.0, -1.0);
-  const Eigen::Vector4d q_inv = inverse.asDiagonal() * curr_att;
-  const Eigen::Vector4d qe = quatMultiplication(q_inv, ref_att);
-  ratecmd(0) = (2.0 / attctrl_tau_) * std::copysign(1.0, qe(0)) * qe(1);
-  ratecmd(1) = (2.0 / attctrl_tau_) * std::copysign(1.0, qe(0)) * qe(2);
-  ratecmd(2) = (2.0 / attctrl_tau_) * std::copysign(1.0, qe(0)) * qe(3);
-  const Eigen::Matrix3d rotmat = quat2RotMatrix(mavAtt_);
-  const Eigen::Vector3d zb = rotmat.col(2);
-  ratecmd(3) =
-      std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb) + norm_thrust_offset_));  // Calculate thrust
-
-  return ratecmd;
-}
-
-Eigen::Vector4d geometricCtrl::jerkcontroller(const Eigen::Vector3d &ref_jerk, const Eigen::Vector3d &ref_acc,
-                                              Eigen::Vector4d &ref_att, Eigen::Vector4d &curr_att) {
-  // Jerk feedforward control
-  // Based on: Lopez, Brett Thomas. Low-latency trajectory planning for high-speed navigation in unknown environments.
-  // Diss. Massachusetts Institute of Technology, 2016.
-  // Feedforward control from Lopez(2016)
-
-  double dt_ = 0.01;
-  // Numerical differentiation to calculate jerk_fb
-  const Eigen::Vector3d jerk_fb = (ref_acc - last_ref_acc_) / dt_;
-  const Eigen::Vector3d jerk_des = ref_jerk + jerk_fb;
-  const Eigen::Matrix3d R = quat2RotMatrix(curr_att);
-  const Eigen::Vector3d zb = R.col(2);
-
-  const Eigen::Vector3d jerk_vector =
-      jerk_des / ref_acc.norm() - ref_acc * ref_acc.dot(jerk_des) / std::pow(ref_acc.norm(), 3);
-  const Eigen::Vector4d jerk_vector4d(0.0, jerk_vector(0), jerk_vector(1), jerk_vector(2));
-
-  Eigen::Vector4d inverse(1.0, -1.0, -1.0, -1.0);
-  const Eigen::Vector4d q_inv = inverse.asDiagonal() * curr_att;
-  const Eigen::Vector4d qd = quatMultiplication(q_inv, ref_att);
-
-  const Eigen::Vector4d qd_star(qd(0), -qd(1), -qd(2), -qd(3));
-
-  const Eigen::Vector4d ratecmd_pre = quatMultiplication(quatMultiplication(qd_star, jerk_vector4d), qd);
-
-  Eigen::Vector4d ratecmd;
-  ratecmd(0) = ratecmd_pre(2);  // TODO: Are the coordinate systems consistent?
-  ratecmd(1) = (-1.0) * ratecmd_pre(1);
-  ratecmd(2) = 0.0;
-  ratecmd(3) =
-      std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb) + norm_thrust_offset_));  // Calculate thrust
-  last_ref_acc_ = ref_acc;
-  return ratecmd;
-}
-
-Eigen::Vector4d geometricCtrl::geometric_attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
-                                                       Eigen::Vector4d &curr_att) {
-  // Geometric attitude controller
-  // Attitude error is defined as in Lee, Taeyoung, Melvin Leok, and N. Harris McClamroch. "Geometric tracking control
-  // of a quadrotor UAV on SE (3)." 49th IEEE conference on decision and control (CDC). IEEE, 2010.
-  // The original paper inputs moment commands, but for offboard control, angular rate commands are sent
-
-  Eigen::Vector4d ratecmd;
-  Eigen::Matrix3d rotmat;    // Rotation matrix of current attitude
-  Eigen::Matrix3d rotmat_d;  // Rotation matrix of desired attitude
-  Eigen::Vector3d error_att;
-
-  rotmat = quat2RotMatrix(curr_att);
-  rotmat_d = quat2RotMatrix(ref_att);
-
-  error_att = 0.5 * matrix_hat_inv(rotmat_d.transpose() * rotmat - rotmat.transpose() * rotmat_d);
-  ratecmd.head(3) = (2.0 / attctrl_tau_) * error_att;
-  rotmat = quat2RotMatrix(mavAtt_);
-  const Eigen::Vector3d zb = rotmat.col(2);
-  ratecmd(3) =
-      std::max(0.0, std::min(1.0, norm_thrust_const_ * ref_acc.dot(zb) + norm_thrust_offset_));  // Calculate thrust
-
-  return ratecmd;
 }
 
 bool geometricCtrl::ctrltriggerCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res) {

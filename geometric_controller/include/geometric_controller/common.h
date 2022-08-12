@@ -60,7 +60,7 @@ static Eigen::Vector3d matrix_hat_inv(const Eigen::Matrix3d &m) {
   return v;
 }
 
-Eigen::Vector3d toEigen(const geometry_msgs::Point &p) {
+inline Eigen::Vector3d toEigen(const geometry_msgs::Point &p) {
   Eigen::Vector3d ev3(p.x, p.y, p.z);
   return ev3;
 }
@@ -70,14 +70,14 @@ inline Eigen::Vector3d toEigen(const geometry_msgs::Vector3 &v3) {
   return ev3;
 }
 
-Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p) {
+inline Eigen::Vector4d quatMultiplication(const Eigen::Vector4d &q, const Eigen::Vector4d &p) {
   Eigen::Vector4d quat;
   quat << p(0) * q(0) - p(1) * q(1) - p(2) * q(2) - p(3) * q(3), p(0) * q(1) + p(1) * q(0) - p(2) * q(3) + p(3) * q(2),
       p(0) * q(2) + p(1) * q(3) + p(2) * q(0) - p(3) * q(1), p(0) * q(3) - p(1) * q(2) + p(2) * q(1) + p(3) * q(0);
   return quat;
 }
 
-Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d &q) {
+inline Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d &q) {
   Eigen::Matrix3d rotmat;
   rotmat << q(0) * q(0) + q(1) * q(1) - q(2) * q(2) - q(3) * q(3), 2 * q(1) * q(2) - 2 * q(0) * q(3),
       2 * q(0) * q(2) + 2 * q(1) * q(3),
@@ -90,7 +90,7 @@ Eigen::Matrix3d quat2RotMatrix(const Eigen::Vector4d &q) {
   return rotmat;
 }
 
-Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R) {
+inline Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R) {
   Eigen::Vector4d quat;
   double tr = R.trace();
   if (tr > 0.0) {

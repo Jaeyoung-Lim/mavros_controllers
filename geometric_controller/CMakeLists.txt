@@ -36,6 +36,9 @@ include_directories(
 
 add_library(${PROJECT_NAME}
   src/geometric_controller.cpp 
+  src/nonlinear_attitude_control.cpp
+  src/nonlinear_geometric_control.cpp
+  src/jerk_tracking_control.cpp
 )
 add_dependencies(geometric_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
