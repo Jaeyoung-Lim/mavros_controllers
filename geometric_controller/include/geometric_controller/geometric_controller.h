@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2018-2021 Jaeyoung Lim. All rights reserved.
+ *   Copyright (c) 2018-2022 Jaeyoung Lim. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,6 +71,7 @@
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
 
 #include "geometric_controller/common.h"
+#include "geometric_controller/control.h"
 
 #define ERROR_QUATERNION 1
 #define ERROR_GEOMETRIC 2
@@ -113,17 +114,17 @@ class geometricCtrl {
   ros::Time last_request_, reference_request_now_, reference_request_last_;
 
   string mav_name_;
-  bool fail_detec_, ctrl_enable_, feedthrough_enable_;
+  bool fail_detec_{false};
+  bool feedthrough_enable_{false};
+  bool ctrl_enable_{true};
   int ctrl_mode_;
-  bool landing_commanded_;
+  bool landing_commanded_{false};
   bool sim_enable_;
   bool velocity_yaw_;
   double kp_rot_, kd_rot_;
   double reference_request_dt_;
-  double attctrl_tau_;
   double norm_thrust_const_, norm_thrust_offset_;
   double max_fb_acc_;
-  double dx_, dy_, dz_;
 
   mavros_msgs::State current_state_;
   mavros_msgs::CommandBool arm_cmd_;
@@ -133,14 +134,11 @@ class geometricCtrl {
   double initTargetPos_x_, initTargetPos_y_, initTargetPos_z_;
   Eigen::Vector3d targetPos_, targetVel_, targetAcc_, targetJerk_, targetSnap_, targetPos_prev_, targetVel_prev_;
   Eigen::Vector3d mavPos_, mavVel_, mavRate_;
-  Eigen::Vector3d last_ref_acc_{Eigen::Vector3d::Zero()};
   double mavYaw_;
-  Eigen::Vector3d g_;
+  Eigen::Vector3d gravity_{Eigen::Vector3d(0.0, 0.0, -9.8)};
   Eigen::Vector4d mavAtt_, q_des;
   Eigen::Vector4d cmdBodyRate_;  //{wx, wy, wz, Thrust}
   Eigen::Vector3d Kpos_, Kvel_, D_;
-  Eigen::Vector3d a0, a1, tau;
-  double tau_x, tau_y, tau_z;
   double Kpos_x_, Kpos_y_, Kpos_z_, Kvel_x_, Kvel_y_, Kvel_z_;
   int posehistory_window_;
 
@@ -170,10 +168,6 @@ class geometricCtrl {
   Eigen::Vector3d poscontroller(const Eigen::Vector3d &pos_error, const Eigen::Vector3d &vel_error);
   Eigen::Vector4d attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
                                 Eigen::Vector4d &curr_att);
-  Eigen::Vector4d geometric_attcontroller(const Eigen::Vector4d &ref_att, const Eigen::Vector3d &ref_acc,
-                                          Eigen::Vector4d &curr_att);
-  Eigen::Vector4d jerkcontroller(const Eigen::Vector3d &ref_jerk, const Eigen::Vector3d &ref_acc,
-                                 Eigen::Vector4d &ref_att, Eigen::Vector4d &curr_att);
 
   enum FlightState { WAITING_FOR_HOME_POSE, MISSION_EXECUTION, LANDING, LANDED } node_state;
 
@@ -188,6 +182,7 @@ class geometricCtrl {
   };
   geometry_msgs::Pose home_pose_;
   bool received_home_pose;
+  std::shared_ptr<Control> controller_;
 
  public:
   void dynamicReconfigureCallback(geometric_controller::GeometricControllerConfig &config, uint32_t level);
