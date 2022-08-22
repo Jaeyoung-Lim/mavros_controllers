@@ -50,6 +50,7 @@
 #include <mavconn/mavlink_dialect.h>
 #include <mavros_msgs/GlobalPositionTarget.h>
 #include <mavros_msgs/PositionTarget.h>
+#include <mavros_msgs/State.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
@@ -78,6 +79,7 @@ class trajectoryPublisher {
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
   ros::Subscriber mavtwistSub_;
+  ros::Subscriber mavstate_sub_;
   ros::ServiceServer trajtriggerServ_;
   ros::Timer trajloop_timer_;
   ros::Timer refloop_timer_;
@@ -85,6 +87,7 @@ class trajectoryPublisher {
 
   nav_msgs::Path refTrajectory_;
   nav_msgs::Path primTrajectory_;
+  mavros_msgs::State current_state_;
 
   int trajectory_type_;
   Eigen::Vector3d p_targ, v_targ, a_targ;
@@ -121,6 +124,7 @@ class trajectoryPublisher {
   void motionselectorCallback(const std_msgs::Int32& selector);
   void mavposeCallback(const geometry_msgs::PoseStamped& msg);
   void mavtwistCallback(const geometry_msgs::TwistStamped& msg);
+  void mavstateCallback(const mavros_msgs::State::ConstPtr& msg);
 };
 
 #endif
