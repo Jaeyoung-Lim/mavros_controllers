@@ -54,6 +54,8 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
                               ros::TransportHints().tcpNoDelay());
   mavtwistSub_ = nh_.subscribe("mavros/local_position/velocity", 1, &trajectoryPublisher::mavtwistCallback, this,
                                ros::TransportHints().tcpNoDelay());
+  mavstate_sub_ = nh_.subscribe("mavros/state", 1, &trajectoryPublisher::mavstateCallback, this,
+                                ros::TransportHints().tcpNoDelay());
 
   trajloop_timer_ = nh_.createTimer(ros::Duration(0.1), &trajectoryPublisher::loopCallback, this);
   refloop_timer_ = nh_.createTimer(ros::Duration(0.01), &trajectoryPublisher::refCallback, this);
@@ -109,6 +111,9 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
 
 void trajectoryPublisher::updateReference() {
   curr_time_ = ros::Time::now();
+  if (current_state_.mode != "OFFBOARD") {  /// Reset start_time_ when not in offboard
+    start_time_ = ros::Time::now();
+  }
   trigger_time_ = (curr_time_ - start_time_).toSec();
 
   p_targ = motionPrimitives_.at(motion_selector_)->getPosition(trigger_time_);
@@ -215,6 +220,8 @@ void trajectoryPublisher::pubrefSetpointRawGlobal() {
   msg.acceleration_or_force.z = a_targ(2);
   global_rawreferencePub_.publish(msg);
 }
+
+void trajectoryPublisher::mavstateCallback(const mavros_msgs::State::ConstPtr& msg) { current_state_ = *msg; }
 
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event) {
   // Slow Loop publishing trajectory information
